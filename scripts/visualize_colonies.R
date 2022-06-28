@@ -16,6 +16,8 @@ data_WA2 <- read.csv("data/WA/J_Brusa/TUPUPelagic.csv", header=T)
 data_WA3 <- read.csv("data/WA/J_Brusa/TUPUSalishSea.csv", header=T) #no coordinates
 data_WA4 <- read.csv("data/WA/J_Brusa/TUPUZone2No2013.csv", header=T)
 data_WA5 <- read.csv("data/WA/S_Pearson/TUPU_Master_2016_15March2017.csv", header=T)
+data_OR1 <- read.csv("data/OR/S_Stephensen/OR_SpeciesSurvey.csv", header=T)
+data_OR2 <- read.csv("data/OR/S_Stephensen/OR_ColonyLocations.csv", header=T)
 
 #reading in regional datasets
 NPSDP <- read.csv("data/N_Pacific_Seabird_Data_Portal/seabird_data_download/status_record_download.csv", header=T)
@@ -30,7 +32,9 @@ head(data_WA2)
 head(data_WA3) #no coordinates in Salish Sea dataset
 head(data_WA4) #no coordinates in TUPU Zone 2 dataset for "all years"; coords wo 2013 only
 head(data_WA5)
+head(data_OR2)
 head(NPSDP)
+
 
 #renaming column names for the merge 
 #also getting new column for data type
@@ -41,8 +45,10 @@ data_WA1 <- data_WA1 %>% rename(long = LongDecDeg) %>% rename(lat = LatDecDeg ) 
 data_WA2 <- data_WA2 %>% rename(long = Longitude) %>% rename(lat = Latitude ) %>%  mutate(!!newColumnName := "All Salish Sea At-Sea")
 data_WA4 <- data_WA4 %>% rename(long = Longitude) %>% rename(lat = Latitude ) %>%  mutate(!!newColumnName := "All Zone 2 Nearshore")
 data_WA5 <- data_WA5 %>% rename(long = Long) %>% rename(lat = Lat ) %>%  mutate(!!newColumnName := "All WDFW At-Sea")
+data_OR2 <- data_OR2 %>% rename(long = dblLongitude) %>% rename(lat = dblLatitude) %>%  mutate(!!newColumnName := "All OR Colony Register")
 NPSDP <- NPSDP %>% rename(long = location_midpoint_lng) %>% rename(lat = location_midpoint_lat ) %>%  mutate(!!newColumnName := "N Pacific Seabird Data Portal")
 
+str(data_OR2)
 #get rid of rows without locations in two datasets
 data_WA4 <- data_WA4 %>% filter(!is.na(long)) %>% filter(!is.na(lat))
 data_WA5 <- data_WA5 %>% filter(!is.na(long)) %>% filter(!is.na(lat))
@@ -55,6 +61,8 @@ unique(data_WA2$Species)
 head(data_WA4) #no coordinates in TUPU Zone 2 dataset for "all years"; coords wo 2013 only
 unique(data_WA4$Species)
 head(data_WA5)
+head(data_OR1)
+head(data_OR2)
 head(NPSDP)
 
 data_WA1_TUPU <- data_WA1 %>% filter(SPECIES_CO=="TUPU") %>%  mutate(!!newColumnName := "TUPU WA Colony Register")
@@ -63,12 +71,19 @@ data_WA4_TUPU <- data_WA4 %>% filter(Species=="TUPU") %>%  mutate(!!newColumnNam
 data_WA5_TUPU <- data_WA1 %>% filter(SPECIES_CO=="TUPU") %>%  mutate(!!newColumnName := "TUPU WDFW At-Sea")
 NPSDP_TUPU <- NPSDP %>% filter(species_common_name=="Tufted Puffin") %>%  mutate(!!newColumnName := "TUPU N Pacific Seabird Data Portal")
 
+#need to combine Oregon data into 1
+data_OR1_TUPU <- data_OR1 %>% filter(strAOUCode =="TUPU")
+data_OR1_TUPU_wcolonyinfo <- left_join(data_OR1_TUPU, data_OR2, by="strColonyCode")
+head(data_OR1_TUPU_wcolonyinfo)
+data_OR1_TUPU <- data_OR1_TUPU_wcolonyinfo %>% mutate(!!newColumnName := "TUPU OR Colony Register")
+
 #let's merge these datasets together
 df_list <- list(data_AK, 
                 data_WA1, data_WA1_TUPU,
                 data_WA2, data_WA2_TUPU,
                 data_WA4, data_WA4_TUPU,
-                data_WA5, data_WA5_TUPU)      
+                data_WA5, data_WA5_TUPU,
+                data_OR2, data_OR1_TUPU)      
 
 #merge all data frames together
 data <- Reduce(function(x, y) merge(x, y, all=TRUE), df_list)  
@@ -113,13 +128,13 @@ myMap <- ggmap_bbox(basemap)
 head(TUPU_proj)
 #plotting the colonies
 
-colors <- met.brewer("Java",n=9,type="continuous")
+colors <- c('#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a','#ffff99')
 ggmap(myMap) +
   geom_sf(data = TUPU_proj, aes(color=as.factor(source)), size=1.5, inherit.aes=F)+
   scale_color_manual(values = colors, name = "Data source") + 
   coord_sf(crs = st_crs(3857))+
-  ggtitle("Puffin Data Sources in AK and WA")
-ggsave("data/figures/AK_and_WA.jpg")
+  ggtitle("Puffin Data Sources in AK, WA, and OR")
+ggsave("data/figures/AK_and_WA_and_OR.jpg")
 
 ####---- LETS DO A MAP WITH NPSDP ONLY ####
 
@@ -154,7 +169,10 @@ ggsave("data/figures/NPSDP.jpg")
 ####---- LETS DO A WA MAP WITH SOURCES ####
 
 #get rid of AK for WA map
-TUPU_proj_noAK <- TUPU_proj %>% filter(source != "TUPU AK Colony Register")
+TUPU_proj_noAK <- TUPU_proj %>% filter(source != "TUPU AK Colony Register" &
+                                        source != "TUPU OR Colony Register" &
+                                        source != "All OR Colony Register")
+unique(TUPU_proj_noAK$source)
 
 #get bounding box **for WA only** in WGS84
 WA_area <- c(left = -126.5, bottom = 46, right = -122, top = 49.5)
@@ -165,12 +183,35 @@ basemap <- get_stamenmap(WA_area, zoom = 7, maptype = "terrain")
 #using the function
 myMap <- ggmap_bbox(basemap) 
 
+colors <- c('#1f78b4','#33a02c','#fb9a99','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a','#ffff99')
 ggmap(myMap) +
   geom_sf(data = TUPU_proj_noAK, aes(color=as.factor(source)), size=1.5, inherit.aes=F)+
-  scale_fill_brewer(palette = "Set1", name="Data source")+
+  scale_color_manual(values = colors, name = "Data source") + 
   coord_sf(crs = st_crs(3857))+
   ggtitle("Puffin Data Sources for WA")
 ggsave("data/figures/WA.jpg")
+
+####---- LETS DO AN OR + WA MAP WITH SOURCES ####
+
+#get rid of AK for WA map
+TUPU_proj_noAK <- TUPU_proj %>% filter(source != "TUPU AK Colony Register")
+
+#get bounding box **for WA AND OR only** in WGS84
+WA_area <- c(left = -126.5, bottom = 41.5, right = -122, top = 49.5)
+plot(WA_area)
+#get stamen map for bounding box
+basemap <- get_stamenmap(WA_area, zoom = 7, maptype = "terrain") 
+
+#using the function
+myMap <- ggmap_bbox(basemap) 
+
+colors <- c('#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a','#ffff99')
+ggmap(myMap) +
+  geom_sf(data = TUPU_proj_noAK, aes(color=as.factor(source)), size=1.5, inherit.aes=F)+
+  scale_color_manual(values = colors, name = "Data source") + 
+  coord_sf(crs = st_crs(3857))+
+  ggtitle("Puffin Data Sources for WA and OR")
+ggsave("data/figures/WA_and_OR.jpg")
 
 
 
