@@ -27,40 +27,64 @@ NPSDP <- NPSDP %>% filter(country=="United States" | country=="Canada")
 
 #getting coordinate column names
 head(data_AK)
+tail(data_AK)
 head(data_WA1)
 head(data_WA2)
 head(data_WA3) #no coordinates in Salish Sea dataset
 head(data_WA4) #no coordinates in TUPU Zone 2 dataset for "all years"; coords wo 2013 only
 head(data_WA5)
+head(data_OR1)
 head(data_OR2)
 head(NPSDP)
-
 
 #renaming column names for the merge 
 #also getting new column for data type
 newColumnName <- "source"
 
-data_AK <- data_AK %>% rename(long = location_midpoint_lng) %>% rename(lat = location_midpoint_lat) %>%  mutate(!!newColumnName := "TUPU AK Colony Register")
-data_WA1 <- data_WA1 %>% rename(long = LongDecDeg) %>% rename(lat = LatDecDeg ) %>%  mutate(!!newColumnName := "All WA Colony Register")
-data_WA2 <- data_WA2 %>% rename(long = Longitude) %>% rename(lat = Latitude ) %>%  mutate(!!newColumnName := "All Salish Sea At-Sea")
-data_WA4 <- data_WA4 %>% rename(long = Longitude) %>% rename(lat = Latitude ) %>%  mutate(!!newColumnName := "All Zone 2 Nearshore")
-data_WA5 <- data_WA5 %>% rename(long = Long) %>% rename(lat = Lat ) %>%  mutate(!!newColumnName := "All WDFW At-Sea")
-data_OR2 <- data_OR2 %>% rename(long = dblLongitude) %>% rename(lat = dblLatitude) %>%  mutate(!!newColumnName := "All OR Colony Register")
-NPSDP <- NPSDP %>% rename(long = location_midpoint_lng) %>% rename(lat = location_midpoint_lat ) %>%  mutate(!!newColumnName := "N Pacific Seabird Data Portal")
+#need to combine Oregon data into 1
+data_OR1 <- data_OR1 %>% rename(survey_year = intSurveyYear) %>% 
+  mutate(!!newColumnName := "All OR Colony Register")
+data_OR2 <- data_OR2 %>% rename(long = dblLongitude) %>% rename(lat = dblLatitude) 
+data_OR1 <- left_join(data_OR1, data_OR2, by="strColonyCode")
+data_OR1 <- data_OR1 %>% rename(site_name = strColonyCode)
 
-str(data_OR2)
+#now we rename columns from the others
+data_AK <- data_AK %>% rename(long = location_midpoint_lng) %>% rename(lat = location_midpoint_lat) %>%  
+  rename(site_name = location_index) %>% rename(survey_year = survey_end_year) %>% 
+  mutate(!!newColumnName := "TUPU AK Colony Register")
+data_WA1 <- data_WA1 %>% rename(long = LongDecDeg) %>% rename(lat = LatDecDeg ) %>%  
+  rename(site_name = SITE_NAME) %>% rename(survey_year = YEAR_) %>% 
+  mutate(!!newColumnName := "All WA Colony Register")
+data_WA2 <- data_WA2 %>% rename(long = Longitude) %>% rename(lat = Latitude ) %>%  
+  rename(survey_year = YYYY) %>% 
+  mutate(!!newColumnName := "All Salish Sea At-Sea")
+data_WA4 <- data_WA4 %>% rename(long = Longitude) %>% rename(lat = Latitude ) %>%  
+  rename(survey_year = YYYY) %>% 
+  mutate(!!newColumnName := "All Zone 2 Nearshore")
+data_WA5 <- data_WA5 %>% rename(long = Long) %>% rename(lat = Lat ) %>%  
+  rename(site_name = Island) %>% rename(survey_year = Year) %>% 
+  mutate(!!newColumnName := "All WDFW At-Sea")
+NPSDP <- NPSDP %>% rename(long = location_midpoint_lng) %>% rename(lat = location_midpoint_lat ) %>%  
+  rename(site_name = location_id) %>% rename(survey_year = survey_end_year) %>% 
+  mutate(!!newColumnName := "All N Pacific Seabird Data Portal")
+
 #get rid of rows without locations in two datasets
 data_WA4 <- data_WA4 %>% filter(!is.na(long)) %>% filter(!is.na(lat))
 data_WA5 <- data_WA5 %>% filter(!is.na(long)) %>% filter(!is.na(lat))
 
 #let's make versions where there are TUPU records
 head(data_AK) #all are TUPU
+unique(data_AK$location_name)
+unique(data_AK$location_index)
 head(data_WA1)
+unique(data_WA1$SITE_NAME)
+unique(data_WA1$SITE_NUMBE)
 head(data_WA2)
 unique(data_WA2$Species)
 head(data_WA4) #no coordinates in TUPU Zone 2 dataset for "all years"; coords wo 2013 only
 unique(data_WA4$Species)
 head(data_WA5)
+unique(data_WA5$Island)
 head(data_OR1)
 head(data_OR2)
 head(NPSDP)
@@ -70,20 +94,16 @@ data_WA2_TUPU <- data_WA2 %>% filter(Species=="TUPU") %>%  mutate(!!newColumnNam
 data_WA4_TUPU <- data_WA4 %>% filter(Species=="TUPU") %>%  mutate(!!newColumnName := "TUPU Zone 2 Nearshore")
 data_WA5_TUPU <- data_WA1 %>% filter(SPECIES_CO=="TUPU") %>%  mutate(!!newColumnName := "TUPU WDFW At-Sea")
 NPSDP_TUPU <- NPSDP %>% filter(species_common_name=="Tufted Puffin") %>%  mutate(!!newColumnName := "TUPU N Pacific Seabird Data Portal")
-
-#need to combine Oregon data into 1
-data_OR1_TUPU <- data_OR1 %>% filter(strAOUCode =="TUPU")
-data_OR1_TUPU_wcolonyinfo <- left_join(data_OR1_TUPU, data_OR2, by="strColonyCode")
-head(data_OR1_TUPU_wcolonyinfo)
-data_OR1_TUPU <- data_OR1_TUPU_wcolonyinfo %>% mutate(!!newColumnName := "TUPU OR Colony Register")
+NPSDP_AK <- NPSDP %>% filter(state_province == "Alaska") %>% mutate(!!newColumnName := "All AK Colony Register")
+data_OR1_TUPU <- data_OR1 %>% filter(strAOUCode =="TUPU") %>% mutate(!!newColumnName := "TUPU OR Colony Register")
 
 #let's merge these datasets together
-df_list <- list(data_AK, 
+df_list <- list(NPSDP_AK, data_AK, 
                 data_WA1, data_WA1_TUPU,
                 data_WA2, data_WA2_TUPU,
                 data_WA4, data_WA4_TUPU,
                 data_WA5, data_WA5_TUPU,
-                data_OR2, data_OR1_TUPU)      
+                data_OR1, data_OR1_TUPU)      
 
 #merge all data frames together
 data <- Reduce(function(x, y) merge(x, y, all=TRUE), df_list)  
@@ -91,6 +111,8 @@ head(data)
 
 data$lat <- as.numeric(data$lat)
 data <- data %>% filter(!is.na(data$lat))
+
+####---- MAPPING STUFF ----####
 
 #let's transfer to an sf object and assign a coordinate system
 TUPU <- st_as_sf(data, coords = 
@@ -214,7 +236,98 @@ ggmap(myMap) +
 ggsave("data/figures/WA_and_OR.jpg")
 
 
+####---- LETS GET FINAL YEAR THERE WAS PUFFIN DATA ####
 
+#using "data" created around L. 113
 
+head(data)
 
+#this will select cols of interest
+data_simple <- data %>% dplyr::select(long, lat, survey_year, site_name, source) 
 
+#this will subset to those w TUPU sightings
+data_simple <- data_simple[!grepl("All", data_simple$source),]
+unique(data_simple$source)
+
+#get rid of those without survey year
+data_simple <- data_simple %>% filter(!is.na(survey_year))
+
+#need to group by last year for the colony sites; at-sea can remain as is
+data_atsea <- data_simple[grepl("At-Sea|Nearshore", data_simple$source),]
+data_colony <-  data_simple[!grepl("At-Sea|Nearshore", data_simple$source),]
+data_colony <- data_colony %>% group_by(site_name) %>% slice_max(survey_year)
+
+data_simple2 <- rbind(data_colony, data_atsea)
+
+data_simple2$year_cat <- cut(data_simple2$survey_year, 
+                   breaks=c(-Inf, 1899, 1949, 1999, 2009, Inf), 
+                   labels=c("pre-1900","pre-1950","1950-2000", "2001-2010", "2011-present"))
+
+#let's transfer to an sf object and assign a coordinate system
+TUPU_year <- st_as_sf(data_simple2, coords = 
+                   c("long", "lat"), crs = 4326)
+
+#these need to be transformed to display properly w google basemap (weird)
+TUPU_proj <- st_transform(TUPU_year, crs =3857)
+
+#get bounding box in WGS84
+area <- c(left = -180, bottom = 41, right = -118, top = 73)
+
+#get stamen map for bounding box
+basemap <- get_stamenmap(area, zoom = 3, maptype = "terrain") 
+
+#here is a function that will allow sf objects to plot properly on google basemaps
+ggmap_bbox <- function(map) {
+  if (!inherits(map, "ggmap")) stop("map must be a ggmap object")
+  # Extract the bounding box (in lat/lon) from the ggmap to a numeric vector, 
+  # and set the names to what sf::st_bbox expects:
+  map_bbox <- setNames(unlist(attr(map, "bb")), c("ymin", "xmin", "ymax", "xmax"))
+  # Convert the bbox to an sf polygon, transform it to 3857, 
+  # and convert back to a bbox (convoluted, but it works)
+  bbox_3857 <- st_bbox(st_transform(st_as_sfc(st_bbox(map_bbox, crs = 4326)), 3857))
+  # Overwrite the bbox of the ggmap object with the transformed coordinates 
+  attr(map, "bb")$ll.lat <- bbox_3857["ymin"]
+  attr(map, "bb")$ll.lon <- bbox_3857["xmin"]
+  attr(map, "bb")$ur.lat <- bbox_3857["ymax"]
+  attr(map, "bb")$ur.lon <- bbox_3857["xmax"]
+  map
+}
+
+#using the function
+myMap <- ggmap_bbox(basemap) 
+
+head(TUPU_proj)
+unique(TUPU_proj$year_cat)
+#plotting the colonies
+
+colors <- c('#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00')
+ggmap(myMap) +
+  geom_sf(data = TUPU_proj, aes(color=as.factor(year_cat)), size=1.5, inherit.aes=F)+
+  scale_color_manual(values = colors, name = "Last year of TUPU record") + 
+  coord_sf(crs = st_crs(3857))#+
+  #ggtitle("Puffin Data Sources in AK, WA, and OR")
+ggsave("data/a_figures/LastYr_AK_and_WA_and_OR.jpg")
+
+#subset to OR and WA
+#get bounding box **for WA AND OR only** in WGS84
+WA_area <- c(left = -126.5, bottom = 41.5, right = -122, top = 49.5)
+plot(WA_area)
+#get stamen map for bounding box
+basemap <- get_stamenmap(WA_area, zoom = 7, maptype = "terrain") 
+
+#using the function
+myMap <- ggmap_bbox(basemap) 
+
+colors <- c('#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00')
+ggmap(myMap) +
+  geom_sf(data = TUPU_proj, aes(color=as.factor(year_cat)), size=1.5, inherit.aes=F)+
+  scale_color_manual(values = colors, name = "Last year of TUPU record") + 
+  coord_sf(crs = st_crs(3857))#+
+  #ggtitle("Puffin Data Sources in AK, WA, and OR")
+ggsave("data/a_figures/LastYr_WA_and_OR.jpg")
+
+####---- COLONY DATA WITH FINAL YEAR OF SURVEY ----####
+
+#created around L. 258
+head(data_colony)
+dim(data_colony)
