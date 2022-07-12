@@ -112,7 +112,7 @@ head(data)
 data$lat <- as.numeric(data$lat)
 data <- data %>% filter(!is.na(data$lat))
 
-####---- MAPPING STUFF ----####
+####---- LET'S DO A MAP WITH AK, OR, and WA ----####
 
 #let's transfer to an sf object and assign a coordinate system
 TUPU <- st_as_sf(data, coords = 
@@ -326,8 +326,119 @@ ggmap(myMap) +
   #ggtitle("Puffin Data Sources in AK, WA, and OR")
 ggsave("data/a_figures/LastYr_WA_and_OR.jpg")
 
-####---- COLONY DATA WITH FINAL YEAR OF SURVEY ----####
+####---- LET'S MAKE 5 x 5 GRID FOR TUPU COLONIES ONLY ----####
 
-#created around L. 258
-head(data_colony)
-dim(data_colony)
+#using data_colony on L. 258
+
+#let's transfer to an sf object and assign a coordinate system
+TUPU_colony <- st_as_sf(data_colony, coords = 
+                        c("long", "lat"), crs = 4326)
+
+TUPU_colony$year_cat <- cut(TUPU_colony$survey_year, 
+                             breaks=c(-Inf, 1899, 1949, 1999, 2009, Inf), 
+                             labels=c("pre-1900","pre-1950","1950-2000", "2001-2010", "2011-present"))
+
+#these need to be transformed to display properly w google basemap (weird)
+TUPU_proj <- st_transform(TUPU_colony, crs =3857)
+
+#get bounding box in WGS84
+area <- c(left = -180, bottom = 41, right = -118, top = 73)
+
+#get stamen map for bounding box
+basemap <- get_stamenmap(area, zoom = 3, maptype = "terrain") 
+
+#here is a function that will allow sf objects to plot properly on google basemaps
+ggmap_bbox <- function(map) {
+  if (!inherits(map, "ggmap")) stop("map must be a ggmap object")
+  # Extract the bounding box (in lat/lon) from the ggmap to a numeric vector, 
+  # and set the names to what sf::st_bbox expects:
+  map_bbox <- setNames(unlist(attr(map, "bb")), c("ymin", "xmin", "ymax", "xmax"))
+  # Convert the bbox to an sf polygon, transform it to 3857, 
+  # and convert back to a bbox (convoluted, but it works)
+  bbox_3857 <- st_bbox(st_transform(st_as_sfc(st_bbox(map_bbox, crs = 4326)), 3857))
+  # Overwrite the bbox of the ggmap object with the transformed coordinates 
+  attr(map, "bb")$ll.lat <- bbox_3857["ymin"]
+  attr(map, "bb")$ll.lon <- bbox_3857["xmin"]
+  attr(map, "bb")$ur.lat <- bbox_3857["ymax"]
+  attr(map, "bb")$ur.lon <- bbox_3857["xmax"]
+  map
+}
+
+#using the function
+myMap <- ggmap_bbox(basemap) 
+
+head(TUPU_proj)
+
+#plotting the colonies
+
+colors <- c('#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00')
+ggmap(myMap) +
+  geom_sf(data = TUPU_proj, aes(color=as.factor(year_cat)), size=1.5, inherit.aes=F)+
+  scale_color_manual(values = colors, name = "Last year of TUPU record") + 
+  coord_sf(crs = st_crs(3857))#+
+#ggtitle("Puffin Data Sources in AK, WA, and OR")
+ggsave("data/a_figures/LastYr_ColoniesOnly_AK_and_WA_and_OR.jpg")
+
+#theyre already in meters, which is awesome (3857)
+#3857 is Pseudo-Mercator (Web Mercator; Spherical Mercator) [Google Maps, etc.]
+
+#ok doesn't work though bc there are some islands that technically go over the 180 deg longitude line
+#will alaska albers work?
+TUPU_proj <- st_transform(TUPU_proj, crs =3338)
+
+#let's make grid over those colonies
+#what if we wanted to do hexagons instead?
+TUPU_grid_1600km2 <- st_make_grid(
+  TUPU_proj,
+  cellsize = 40000, #this makes grids of 1600 km2
+  crs = 3338,
+  what = "polygons",
+  square = TRUE)
+
+extent <- st_bbox(TUPU_grid_1600km2)
+
+# library(rnaturalearth)
+# test <- ne_download(scale=50, type="states", category="cultural",returnclass="sf")
+# states <- test %>% filter(name_en=="Alaska" | name_en=="Oregon" |
+#                             name_en=="Washington" | name_en=="British Columbia")
+# states <- st_transform(states, crs =3338)
+
+ggplot() +
+  geom_sf(data=states, fill=NA, color="black", size=1)+
+  geom_sf(data = TUPU_proj, color="blue", size=1.5, inherit.aes=F)+
+  geom_sf(data=TUPU_grid_1600km2, fill=NA, color = "darkgrey", size=0.25)+
+  coord_sf(crs=3338, xlim=c(extent[[1]], extent[[3]]), ylim=c(extent[[2]], extent[[4]]))
+  
+ggsave("data/a_figures/ColoniesOnly_w1600km2Grid.jpg")
+
+library(gstat)
+library(rasterize)
+library(raster)
+
+r <- raster(ncol=200, nrow=100)
+extent(r) <- extent(TUPU_proj)
+rp <- rasterize(TUPU_proj, r, 1)
+plot(rp)
+
+#rs is a raster with 1s for where there are colonies
+
+#http://santiago.begueria.es/2010/10/generating-spatially-correlated-random-fields-with-r/
+test <- as.data.frame(rp, row.names=NULL, optional=FALSE,
+              xy=TRUE, na.rm=T)
+head(test)
+
+# define the gstat object (spatial model)
+g.dummy <- gstat(formula=z~1+y, locations=~x+y, dummy=T, beta=25, model=vgm(psill=10,model="Exp",range=15), nmax=20)
+yy <- predict(g.dummy, newdata=test, nsim=4)
+
+# show one realization
+gridded(yy) = ~x+y
+spplot(yy[1])
+
+#would then use poly2nb and run dcar_normal in nimble?
+#can i generate data from a dcar_normal process?
+
+#simulating data from nimble
+#https://r-nimble.org/nimbleExamples/simulation_from_model.html
+
+
