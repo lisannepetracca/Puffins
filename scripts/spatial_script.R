@@ -8,3 +8,4 @@ spcov <- function(R,alpha) {
   Rd$C <- as.numeric((cov1 - mean(cov1)) / sd(cov1))
   return(Rd)
 }
+
