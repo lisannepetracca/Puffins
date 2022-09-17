@@ -1,23 +1,5 @@
-N <- 7
-r <- 5
-theta <- 80
-x <- y <- vector()
-
-for(n in 1:N){
-  x[n] = r * cos(2*pi*n/N + theta) #+ x_centre
-  y[n] = r * sin(2*pi*n/N + theta) #+ y_centre
-}
-plot(x, y)
-df <- as.data.frame(cbind(x,y))
 library(sf)
-library(tidyverse)
-polygon <- df %>%
-  st_as_sf(coords = c("x", "y"), crs = 4326) %>%
-  summarise(geometry = st_combine(geometry)) %>%
-  st_cast("POLYGON")
-plot(polygon)
-
-library(sf)
+library(ggplot2)
 pt.df   <- data.frame(pt = 1, x = 100, y = 100)
 pt.sf   <- st_as_sf(pt.df, coords = c("x", "y")) 
 island <- st_buffer(pt.sf, dist = 50) #this is an area of 50 m radius
@@ -44,7 +26,7 @@ rast <- rast(suitable_habitat, resolution = c(5,5))
 values(rast) <- 1:ncell(rast)
 
 #convert to points, mask to habitat
-points <- as.points(template, na.rm = TRUE)
+points <- as.points(rast, na.rm = TRUE)
 sf_points <- sf::st_as_sf(points)
 sf_points <- st_intersection(sf_points, suitable_habitat)
 
@@ -66,21 +48,33 @@ ggplot() +
 #kappa represents the intensity of the poisson process of cluster centers
 #mu is mean number of points per cluster
 #scale is standard deviation of random displacement (along each coordinate axis) of a point from the cluster center
-#hard to say what mu and scale are doing
-kappa = 3500 / st_area(suitable_habitat) # intensity
-th = st_sample(suitable_habitat, kappa = kappa, mu = 0.7, scale = 0.05, type = "Thomas") 
+kappa = 2000 / st_area(suitable_habitat) # intensity
+kappa2 = (2000/4) / st_area(suitable_habitat) # intensity
+
+th = st_sample(suitable_habitat, kappa = kappa, mu = 1.1, scale = 1, type = "Thomas") 
+th2 = st_sample(suitable_habitat, kappa = kappa2, mu = 4, scale = 1, type = "Thomas") 
 #?rThomas
 #The help function obtained by ?rThomas details the meaning of the parameters kappa, mu and scale. 
 #Simulating point processes means that the intensity is given, not the sample size. 
 #The sample size within the observation window obtained this way is a random variable.
 
+#?rThomas
+#spdep package??
+
 ggplot() +
   geom_sf(data = suitable_habitat, color = "black", fill = "white", size=1) +
   geom_sf(data=th, color = "darkgreen", size=1)
+ggplot() +
+  geom_sf(data = suitable_habitat, color = "black", fill = "white", size=1) +
+  geom_sf(data=th2, color = "darkgreen", size=1)
 
 #let's see how many burrows per plot
 (plots$burrow_count <- lengths(st_intersects(plots, th)))
-summary(plots$burrow_count)
+mean(plots$burrow_count)
+sd(plots$burrow_count)
+(plots$burrow_count <- lengths(st_intersects(plots, th2)))
+mean(plots$burrow_count)
+sd(plots$burrow_count)
 
 #ok but now we have to exclude habitat that cannot be visited
 ?st_buffer
@@ -99,9 +93,9 @@ ggplot() +
   geom_sf(data = island, color = "black", fill = "white", size=1) +
   geom_sf(data = suitable_habitat, color = "black", fill = "black", size=1) +
   geom_sf(data = survey_habitat, color = "black", fill = "grey", size=1)+
-  geom_sf(data=th, color = "purple", size=1)+
-  geom_sf(data=plots, color = "blue", size=1)
-
+  geom_sf(data=plots, color = "blue", size=1)+
+  geom_sf(data=th2, color = "purple", size=1)
+  
 #need to assign occupancy to all of these burrows -- should use real data, but let's use 0.75 for now
 
 #true density of burrows in suitable habitat is
@@ -116,32 +110,137 @@ prop <- c(0.1, 0.25, 0.5, 0.75, 0.9, 1)
 nSamples <- round(72*prop) 
 
 my.samples <- list()
-mean <- sd <- vector()
+mean <- sd <- matrix(nrow=6,ncol=100)
+temp <- list()
+nsim <- 100
 
-for(i in 1:length(nSamples)){
-  my.samples[[i]] <- sample(c(1:nrow(plots)),nSamples[i])   
-  mean[i] <- mean(lengths(st_intersects(plots[my.samples[[i]],], th)))
-  sd[i] <- sd(lengths(st_intersects(plots[my.samples[[i]],], th)))  
-}
+for(j in 1:nsim){
+  for(i in 1:length(nSamples)){
+      temp[[j]] <- sample(c(1:nrow(plots)),nSamples[i])  
+      mean[i,j] <- mean(lengths(st_intersects(plots[temp[[j]],], th)))
+      sd[i,j] <- sd(lengths(st_intersects(plots[temp[[j]],], th)))  
+  }}
 
-data <- as.data.frame(cbind(mean,sd))
-data$nSamples <- nSamples
+mean <- as.data.frame(mean)
+sd <- as.data.frame(sd)
+
+mean$prop <- c("10", "25", "50", "75", "90", "100")
+sd$prop <- c("10", "25", "50", "75", "90", "100")
+
+library(tidyverse)
+means <-   mean %>% pivot_longer(
+  cols = starts_with("V"),
+  values_to = "mean",
+  values_drop_na = TRUE
+)
+sds <-   sd %>% pivot_longer(
+  cols = starts_with("V"),
+  values_to = "sd",
+  values_drop_na = TRUE
+)
+
+means$sd <- sds$sd
+means$prop <- factor(means$prop, levels = c("10", "25", "50", "75", "90", "100"))
 
 library(ggplot2)
 
-ggplot(data, aes(x=as.factor(1:6), y=mean)) +
-  geom_bar(position=position_dodge(), stat="identity",
-           colour='black') +
-  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2)+
-  geom_hline(yintercept=6.71, linetype="dashed", 
-               color = "red", size=2)+
-  geom_hline(yintercept=6.71+3.256359, linetype="dashed", 
-             color = "red", size=1)+
-  geom_hline(yintercept=6.71-3.256359, linetype="dashed", 
-             color = "red", size=1)+
-  scale_x_discrete(breaks=c("1","2","3","4","5","6"),
+ggplot(means, aes(x=prop, y=mean)) +
+  geom_boxplot()+
+  # geom_bar(position=position_dodge(), stat="identity",
+  #          colour='black') +
+  # geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2)+
+  geom_hline(yintercept=5.319444, linetype="dashed", 
+               color = "red", size=1)+
+  # geom_hline(yintercept=5.319444+2.968503, linetype="dashed",
+  #            color = "red", size=1)+
+  # geom_hline(yintercept=5.319444-2.968503, linetype="dashed",
+  #            color = "red", size=1)+
+  scale_x_discrete(breaks=c("10","25","50","75","90","100"),
                    labels=c("10%", "25%", "50%", "75%", "90%", "100%"))+
     xlab("Proportion of plots surveyed")
 
+#and let's see true number burrows in plots
+(plots$burrow_count <- lengths(st_intersects(plots, th2)))
+mean(plots$burrow_count)
+sd(plots$burrow_count)
+
+prop <- c(0.1, 0.25, 0.5, 0.75, 0.9, 1)
+nSamples <- round(72*prop) 
+
+my.samples <- list()
+mean <- sd <- matrix(nrow=6,ncol=100)
+temp <- list()
+nsim <- 100
+
+for(j in 1:nsim){
+  for(i in 1:length(nSamples)){
+    temp[[j]] <- sample(c(1:nrow(plots)),nSamples[i])  
+    mean[i,j] <- mean(lengths(st_intersects(plots[temp[[j]],], th2)))
+    sd[i,j] <- sd(lengths(st_intersects(plots[temp[[j]],], th2)))  
+  }}
+
+mean <- as.data.frame(mean)
+sd <- as.data.frame(sd)
+
+mean$prop <- c("10", "25", "50", "75", "90", "100")
+sd$prop <- c("10", "25", "50", "75", "90", "100")
+
+library(tidyverse)
+means <-   mean %>% pivot_longer(
+  cols = starts_with("V"),
+  values_to = "mean",
+  values_drop_na = TRUE
+)
+sds <-   sd %>% pivot_longer(
+  cols = starts_with("V"),
+  values_to = "sd",
+  values_drop_na = TRUE
+)
+
+means$sd <- sds$sd
+means$prop <- factor(means$prop, levels = c("10", "25", "50", "75", "90", "100"))
+
+library(ggplot2)
+
+ggplot(means, aes(x=prop, y=mean)) +
+  geom_boxplot()+
+  # geom_bar(position=position_dodge(), stat="identity",
+  #          colour='black') +
+  # geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2)+
+  geom_hline(yintercept=4.791667, linetype="dashed", 
+             color = "red", size=1)+
+  # geom_hline(yintercept=5.319444+2.968503, linetype="dashed",
+  #            color = "red", size=1)+
+  # geom_hline(yintercept=5.319444-2.968503, linetype="dashed",
+  #            color = "red", size=1)+
+  scale_x_discrete(breaks=c("10","25","50","75","90","100"),
+                   labels=c("10%", "25%", "50%", "75%", "90%", "100%"))+
+  xlab("Proportion of plots surveyed")
+
 #notes at end of day friday
 #need to repeat this like 100x to get at variation in plots surveyed; mean and SE rather than SD
+
+#ok so i did the repeat 100x and have boxplots getting at mean for more homogeneous and more clustered
+#how to keep number of burrows EXACTLY the same while changing clusteredness
+
+
+
+#DISCARDED
+N <- 7
+r <- 5
+theta <- 80
+x <- y <- vector()
+
+for(n in 1:N){
+  x[n] = r * cos(2*pi*n/N + theta) #+ x_centre
+  y[n] = r * sin(2*pi*n/N + theta) #+ y_centre
+}
+plot(x, y)
+df <- as.data.frame(cbind(x,y))
+library(sf)
+library(tidyverse)
+polygon <- df %>%
+  st_as_sf(coords = c("x", "y"), crs = 4326) %>%
+  summarise(geometry = st_combine(geometry)) %>%
+  st_cast("POLYGON")
+plot(polygon)
