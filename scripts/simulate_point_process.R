@@ -55,17 +55,30 @@ ggplot() +
 #scale is standard deviation of random displacement (along each coordinate axis) of a point from the cluster center
 #first one is homogeneous, second is not homogeneous
 
+#a resource for spatstat
+# http://spatstat.org/Melb2018/solutions/solution09.html
+
 
 #goes from more homogeneous to more clustered
-kappa = 2000 / st_area(suitable_habitat) # intensity
-kappa2 = (2000/4) / st_area(suitable_habitat) # intensity
+kappa = 1825 / st_area(suitable_habitat) # intensity
+kappa2 = (1825/3.6) / st_area(suitable_habitat) # intensity
 #i don't think this one is realistic (max count of 28?)
 #kappa3 = (2000/8) / st_area(suitable_habitat) # intensity
 
 #setting seed and creating clustered point processes
+#calls spatstat.random::rThomas
+
+th <- list()
+th2 <- list()
+
 set.seed(23)
-th = st_sample(suitable_habitat, kappa = kappa, mu = 1, scale = 1, type = "Thomas")
-th2 = st_sample(suitable_habitat, kappa = kappa2, mu = 4, scale = 1, type = "Thomas")
+nsim <- 25
+npp <- 25
+for(i in 1:nsim){
+th[[i]] = st_sample(suitable_habitat, kappa = kappa, mu = 1, scale = 1, type = "Thomas")
+th2[[i]] = st_sample(suitable_habitat, kappa = kappa2, mu = 3.6, scale = 1, type = "Thomas")
+}
+
 #i don't think this one is realistic (max count of 28?)
 #th3 = st_sample(suitable_habitat, kappa = kappa3, mu = 8.2, scale = 1, type = "Thomas") 
 
@@ -84,13 +97,28 @@ ggplot() +
   geom_sf(data = suitable_habitat, color = "black", fill = "white", size=1) +
   geom_sf(data=th2, color = "darkgreen", size=1)
 
-#let's see how many burrows per plot
-(plots$burrow_count <- lengths(st_intersects(plots, th)))
-mean(plots$burrow_count) #5.944444
-sd(plots$burrow_count)
-(plots$burrow_count <- lengths(st_intersects(plots, th2)))
-mean(plots$burrow_count) #5.912037
-sd(plots$burrow_count)
+#let's get burrows per plot for MORE HOMOGENEOUS
+
+burrow_count <- list()
+
+for(i in 1:npp){
+burrow_count[[i]] <- lengths(st_intersects(plots, th[[i]]))
+}
+burrows_all <- unlist(burrow_count)
+mean(burrows_all) #5.41, this is mean including variance by process and sampling variance
+sd(burrows_all) #2.906465
+hist(burrows_all)
+
+#let's get burrows per plot for MORE CLUSTERED
+
+burrow_count <- list()
+
+for(i in 1:npp){
+  burrow_count[[i]] <- lengths(st_intersects(plots, th2[[i]]))
+}
+burrows_all <- unlist(burrow_count)
+mean(burrows_all) #5.403889, this is mean including variance by process and sampling variance
+sd(burrows_all) #4.02539
 
 #ok but now we have to exclude habitat that cannot be visited
 ?st_buffer
@@ -106,41 +134,51 @@ ggplot() +
 #let's see what plots are in surveyable areas
 #NOT CLUSTERED
 plots_survey <- st_join(plots, survey_habitat, join = st_within, left=FALSE)
-ggplot() +
+clust1 <- ggplot() +
   geom_sf(data = island, color = "black", fill = "white", size=1) +
-  geom_sf(data = suitable_habitat, color = "white", fill = "black", size=1) +
+  geom_sf(data = suitable_habitat, color = "white", fill = "darkgrey", size=1) +
   geom_sf(data=plots, color = "blue", size=1)+
-  geom_sf(data=th, color = "hotpink", size=1)
+  geom_sf(data=th[[1]], color = "black", size=1)
 
 #CLUSTERED
-plots_survey <- st_join(plots, survey_habitat, join = st_within, left=FALSE)
-ggplot() +
+#plots_survey <- st_join(plots, survey_habitat, join = st_within, left=FALSE)
+clust2 <- ggplot() +
   geom_sf(data = island, color = "black", fill = "white", size=1) +
-  geom_sf(data = suitable_habitat, color = "white", fill = "black", size=1) +
+  geom_sf(data = suitable_habitat, color = "white", fill = "darkgrey", size=1) +
   geom_sf(data=plots, color = "blue", size=1)+
-  geom_sf(data=th2, color = "hotpink", size=1)
+  geom_sf(data=th2[[1]], color = "black", size=1)
 
 #let's see what plots are in surveyable vs non-surveyable areas
 #NOT CLUSTERED
-plots_survey <- st_join(plots, survey_habitat, join = st_within, left=FALSE)
-ggplot() +
+#plots_survey <- st_join(plots, survey_habitat, join = st_within, left=FALSE)
+clust3 <- ggplot() +
   geom_sf(data = island, color = "black", fill = "white", size=1) +
-  geom_sf(data = suitable_habitat, color = "black", fill = "black", size=1) +
-  geom_sf(data = survey_habitat, color = "black", fill = "grey", size=1)+
+  geom_sf(data = suitable_habitat, color = "black", fill = "darkgrey", size=1) +
+  geom_sf(data = survey_habitat, color = "darkgrey", fill = "lightgrey", size=1)+
   geom_sf(data=plots_survey, color = "blue", size=1)+
-  geom_sf(data=th, color = "hotpink", size=1)
+  geom_sf(data=th[[1]], color = "black", size=1)
 
 #CLUSTERED
-plots_survey <- st_join(plots, survey_habitat, join = st_within, left=FALSE)
-ggplot() +
+#plots_survey <- st_join(plots, survey_habitat, join = st_within, left=FALSE)
+clust4 <- ggplot() +
   geom_sf(data = island, color = "black", fill = "white", size=1) +
-  geom_sf(data = suitable_habitat, color = "black", fill = "black", size=1) +
-  geom_sf(data = survey_habitat, color = "black", fill = "grey", size=1)+
+  geom_sf(data = suitable_habitat, color = "black", fill = "darkgrey", size=1) +
+  geom_sf(data = survey_habitat, color = "darkgrey", fill = "lightgrey", size=1)+
   geom_sf(data=plots_survey, color = "blue", size=1)+
-  geom_sf(data=th2, color = "hotpink", size=1)
+  geom_sf(data=th2[[1]], color = "black", size=1)
+
+library(cowplot)
+plot_grid(
+  clust1, clust2, clust3, clust4,
+  labels=c('A', 'B', 'C', 'D'),
+  # labels = c('little cluster, all surveyable', 'more cluster, all surveyable', 
+  #            'little cluster, 15-m not surveyable', 'more cluster, 15-m not surveyable'),
+  align="hv"
+)
+ggsave("G:/My Drive/Puffins/Figures/BurrowDensity_CirclePlots_Overview.jpg")
 
 #true density of burrows in suitable habitat is
-nrow(th)/st_area(suitable_habitat) #0.323726/m2
+#nrow(th)/st_area(suitable_habitat) #0.323726/m2
 
 library(tidyverse)
 
@@ -149,17 +187,18 @@ prop <- c(0.1, 0.25, 0.5, 0.75, 0.9, 1)
 nSamples <- round(nrow(plots)*prop) 
 
 my.samples <- list()
-mean <- sd <- matrix(nrow=6,ncol=100)
+mean <- sd <- array(data=NA, dim=c(6,nsim,npp))
 temp <- list()
-nsim <- 100
 
 #we are repeating sims 100x to get at variability of sampling
-for(j in 1:nsim){
-  for(i in 1:length(nSamples)){
+for(i in 1:length(nSamples)){
+  for(j in 1:nsim){
+    #getting the same 6x100 plots to sample for each pp
     temp[[j]] <- sample(c(1:nrow(plots)),nSamples[i])
-    mean[i,j] <- mean(lengths(st_intersects(plots[temp[[j]],], th)))
-    sd[i,j] <- sd(lengths(st_intersects(plots[temp[[j]],], th)))
-  }}
+    for(k in 1:npp){
+    mean[i,j,k] <- mean(lengths(st_intersects(plots[temp[[j]],], th[[k]])))
+    sd[i,j,k] <- sd(lengths(st_intersects(plots[temp[[j]],], th[[k]])))
+  }}}
 
 
 #here is function to make mean and sd for this exercise
@@ -178,10 +217,14 @@ means_fct <- function(tidy) {
 #   values_drop_na = TRUE
 # )
 
+dim(mean)
+test <- as_tibble(mean)
 mean_summ <- means_fct(mean)
 #sd <- as.data.frame(sd)
 mean_summ$prop <- factor(mean_summ$prop, levels = c("10", "25", "50", "75", "90", "100"))
 
+
+y_int = mean(mean)
 #sd$prop <- c("10", "25", "50", "75", "90", "100")
 
 library(ggplot2)
@@ -192,7 +235,7 @@ test1 <- ggplot(mean_summ, aes(x=prop, y=mean)) +
   # geom_bar(position=position_dodge(), stat="identity",
   #          colour='black') +
   # geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2)+
-  geom_hline(yintercept=5.9444444, linetype="dashed",
+  geom_hline(yintercept=5.4, linetype="dashed",
              color = "red", size=1)+
   # geom_hline(yintercept=5.319444+2.968503, linetype="dashed",
   #            color = "red", size=1)+
@@ -200,23 +243,23 @@ test1 <- ggplot(mean_summ, aes(x=prop, y=mean)) +
   #            color = "red", size=1)+
   scale_x_discrete(breaks=c("10","25","50","75","90","100"),
                    labels=c("10%", "25%", "50%", "75%", "90%", "100%"))+
-  xlab("Proportion of plots surveyed") + ylab("Mean # burrows per plot") + ylim(2.5,9.5)
+  xlab("Proportion of plots surveyed")+ ylab("Mean # burrows per plot") + ylim(0,13)
 test1
 
 ####---- MOVING ON TO THE MORE CLUSTERED ONE ----####
 
 my.samples <- list()
-mean <- sd <- matrix(nrow=6,ncol=100)
+mean <- sd <- array(data=NA, dim=c(6,nsim,npp))
 temp <- list()
-nsim <- 100
 
-#we are repeating sims 100x to get at variability of sampling
-for(j in 1:nsim){
-  for(i in 1:length(nSamples)){
-    temp[[j]] <- sample(c(1:nrow(plots)),nSamples[i])  
-    mean[i,j] <- mean(lengths(st_intersects(plots[temp[[j]],], th2)))
-    sd[i,j] <- sd(lengths(st_intersects(plots[temp[[j]],], th2)))  
-  }}
+for(i in 1:length(nSamples)){
+  for(j in 1:nsim){
+    #getting the same 6x100 plots to sample for each pp
+    temp[[j]] <- sample(c(1:nrow(plots)),nSamples[i])
+    for(k in 1:npp){
+      mean[i,j,k] <- mean(lengths(st_intersects(plots[temp[[j]],], th2[[k]])))
+      sd[i,j,k] <- sd(lengths(st_intersects(plots[temp[[j]],], th2[[k]])))
+    }}}
 
 mean_summ <- means_fct(mean)
 #sd <- as.data.frame(sd)
@@ -232,7 +275,7 @@ test2 <- ggplot(mean_summ, aes(x=prop, y=mean)) +
   # geom_bar(position=position_dodge(), stat="identity",
   #          colour='black') +
   # geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2)+
-  geom_hline(yintercept=5.912037, linetype="dashed", 
+  geom_hline(yintercept=5.4, linetype="dashed", 
              color = "red", size=1)+
   # geom_hline(yintercept=5.319444+2.968503, linetype="dashed",
   #            color = "red", size=1)+
@@ -240,7 +283,7 @@ test2 <- ggplot(mean_summ, aes(x=prop, y=mean)) +
   #            color = "red", size=1)+
   scale_x_discrete(breaks=c("10","25","50","75","90","100"),
                    labels=c("10%", "25%", "50%", "75%", "90%", "100%"))+
-  xlab("Proportion of plots surveyed")+ ylab("Mean # burrows per plot") + ylim(2.5,9.5)
+  xlab("Proportion of plots surveyed")+ ylab("Mean # burrows per plot") + ylim(0,13)
 test2
 
 ####---- MOVING ON TO LESS CLUSTERED, SMALLER AREA SURVEYABLE ----####
@@ -248,17 +291,18 @@ test2
 nSamples <- round(nrow(plots_survey)*prop)
 
 my.samples <- list()
-mean <- sd <- matrix(nrow=6,ncol=100)
+mean <- sd <- array(data=NA, dim=c(6,nsim,npp))
 temp <- list()
-nsim <- 100
 
 #we are repeating sims 100x to get at variability of sampling
-for(j in 1:nsim){
-  for(i in 1:length(nSamples)){
-    temp[[j]] <- sample(c(1:nrow(plots_survey)),nSamples[i])  
-    mean[i,j] <- mean(lengths(st_intersects(plots_survey[temp[[j]],], th)))
-    sd[i,j] <- sd(lengths(st_intersects(plots_survey[temp[[j]],], th)))  
-  }}
+for(i in 1:length(nSamples)){
+  for(j in 1:nsim){
+    #getting the same 6x100 plots to sample for each pp
+    temp[[j]] <- sample(c(1:nrow(plots)),nSamples[i])
+    for(k in 1:npp){
+      mean[i,j,k] <- mean(lengths(st_intersects(plots[temp[[j]],], th[[k]])))
+      sd[i,j,k] <- sd(lengths(st_intersects(plots[temp[[j]],], th[[k]])))
+    }}}
 
 mean_summ <- means_fct(mean)
 #sd <- as.data.frame(sd)
@@ -274,7 +318,7 @@ test3 <- ggplot(mean_summ, aes(x=prop, y=mean)) +
   # geom_bar(position=position_dodge(), stat="identity",
   #          colour='black') +
   # geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2)+
-  geom_hline(yintercept=5.9444444, linetype="dashed", 
+  geom_hline(yintercept=5.4, linetype="dashed", 
              color = "red", size=1)+
   # geom_hline(yintercept=5.319444+2.968503, linetype="dashed",
   #            color = "red", size=1)+
@@ -282,23 +326,24 @@ test3 <- ggplot(mean_summ, aes(x=prop, y=mean)) +
   #            color = "red", size=1)+
   scale_x_discrete(breaks=c("10","25","50","75","90","100"),
                    labels=c("10%", "25%", "50%", "75%", "90%", "100%"))+
-  xlab("Proportion of plots surveyed")+ ylab("Mean # burrows per plot") + ylim(2.5,9.5)
+  xlab("Proportion of plots surveyed")+ ylab("Mean # burrows per plot") + ylim(0,13)
 test3
 
 ####---- MOVING ON TO MORE CLUSTERED, SMALLER AREA SURVEYABLE ----####
 
 my.samples <- list()
-mean <- sd <- matrix(nrow=6,ncol=100)
+mean <- sd <- array(data=NA, dim=c(6,nsim,npp))
 temp <- list()
-nsim <- 100
 
 #we are repeating sims 100x to get at variability of sampling
-for(j in 1:nsim){
-  for(i in 1:length(nSamples)){
-    temp[[j]] <- sample(c(1:nrow(plots_survey)),nSamples[i])  
-    mean[i,j] <- mean(lengths(st_intersects(plots_survey[temp[[j]],], th2)))
-    sd[i,j] <- sd(lengths(st_intersects(plots_survey[temp[[j]],], th2)))  
-  }}
+for(i in 1:length(nSamples)){
+  for(j in 1:nsim){
+    #getting the same 6x100 plots to sample for each pp
+    temp[[j]] <- sample(c(1:nrow(plots)),nSamples[i])
+    for(k in 1:npp){
+      mean[i,j,k] <- mean(lengths(st_intersects(plots[temp[[j]],], th2[[k]])))
+      sd[i,j,k] <- sd(lengths(st_intersects(plots[temp[[j]],], th2[[k]])))
+    }}}
 
 mean_summ <- means_fct(mean)
 #sd <- as.data.frame(sd)
@@ -314,7 +359,7 @@ test4 <- ggplot(mean_summ, aes(x=prop, y=mean)) +
   # geom_bar(position=position_dodge(), stat="identity",
   #          colour='black') +
   # geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2)+
-  geom_hline(yintercept=5.912037, linetype="dashed", 
+  geom_hline(yintercept=5.4, linetype="dashed", 
              color = "red", size=1)+
   # geom_hline(yintercept=5.319444+2.968503, linetype="dashed",
   #            color = "red", size=1)+
@@ -322,7 +367,7 @@ test4 <- ggplot(mean_summ, aes(x=prop, y=mean)) +
   #            color = "red", size=1)+
   scale_x_discrete(breaks=c("10","25","50","75","90","100"),
                    labels=c("10%", "25%", "50%", "75%", "90%", "100%"))+
-  xlab("Proportion of plots surveyed") + ylab("Mean # burrows per plot") + ylim(2.5,9.5)
+  xlab("Proportion of plots surveyed")+ ylab("Mean # burrows per plot") + ylim(0,13)
 test4
 
 library(cowplot)
@@ -333,6 +378,8 @@ plot_grid(
   #            'little cluster, 15-m not surveyable', 'more cluster, 15-m not surveyable'),
   align="hv"
 )
+ggsave("G:/My Drive/Puffins/Figures/BurrowDensity_CirclePlots.jpg")
+
 #need to assign occupancy to all of these burrows -- should use real data, but let's use 0.75 for now
 
 
