@@ -60,6 +60,7 @@ ggplot() +
 
 
 #goes from more homogeneous to more clustered
+#real data says mean of 5.41 and sd of 3.72
 kappa = 1825 / st_area(suitable_habitat) # intensity
 kappa2 = (1825/3.6) / st_area(suitable_habitat) # intensity
 #i don't think this one is realistic (max count of 28?)
@@ -137,16 +138,16 @@ plots_survey <- st_join(plots, survey_habitat, join = st_within, left=FALSE)
 clust1 <- ggplot() +
   geom_sf(data = island, color = "black", fill = "white", size=1) +
   geom_sf(data = suitable_habitat, color = "white", fill = "darkgrey", size=1) +
-  geom_sf(data=plots, color = "blue", size=1)+
-  geom_sf(data=th[[1]], color = "black", size=1)
+  geom_sf(data=plots, color = "blue", fill=NA, size=1)+
+  geom_sf(data=th[[1]], color = "yellow", size=0.5)
 
 #CLUSTERED
 #plots_survey <- st_join(plots, survey_habitat, join = st_within, left=FALSE)
 clust2 <- ggplot() +
   geom_sf(data = island, color = "black", fill = "white", size=1) +
   geom_sf(data = suitable_habitat, color = "white", fill = "darkgrey", size=1) +
-  geom_sf(data=plots, color = "blue", size=1)+
-  geom_sf(data=th2[[1]], color = "black", size=1)
+  geom_sf(data=plots, color = "blue", fill=NA, size=1)+
+  geom_sf(data=th2[[1]], color = "yellow", size=0.5)
 
 #let's see what plots are in surveyable vs non-surveyable areas
 #NOT CLUSTERED
@@ -155,8 +156,8 @@ clust3 <- ggplot() +
   geom_sf(data = island, color = "black", fill = "white", size=1) +
   geom_sf(data = suitable_habitat, color = "black", fill = "darkgrey", size=1) +
   geom_sf(data = survey_habitat, color = "darkgrey", fill = "lightgrey", size=1)+
-  geom_sf(data=plots_survey, color = "blue", size=1)+
-  geom_sf(data=th[[1]], color = "black", size=1)
+  geom_sf(data=plots_survey, color = "blue", fill=NA, size=1)+
+  geom_sf(data=th[[1]], color = "yellow", size=0.5)
 
 #CLUSTERED
 #plots_survey <- st_join(plots, survey_habitat, join = st_within, left=FALSE)
@@ -164,9 +165,10 @@ clust4 <- ggplot() +
   geom_sf(data = island, color = "black", fill = "white", size=1) +
   geom_sf(data = suitable_habitat, color = "black", fill = "darkgrey", size=1) +
   geom_sf(data = survey_habitat, color = "darkgrey", fill = "lightgrey", size=1)+
-  geom_sf(data=plots_survey, color = "blue", size=1)+
-  geom_sf(data=th2[[1]], color = "black", size=1)
-
+  geom_sf(data=plots_survey, color = "blue", fill=NA, size=1)+
+  geom_sf(data=th2[[1]], color = "yellow", size=0.5)
+  
+  
 library(cowplot)
 plot_grid(
   clust1, clust2, clust3, clust4,
