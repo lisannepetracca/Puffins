@@ -80,8 +80,22 @@ th[[i]] = st_sample(suitable_habitat, kappa = kappa, mu = 1, scale = 1, type = "
 th2[[i]] = st_sample(suitable_habitat, kappa = kappa2, mu = 3.6, scale = 1, type = "Thomas")
 }
 
+length(th)
+nrow(th[[4]])
 #i don't think this one is realistic (max count of 28?)
 #th3 = st_sample(suitable_habitat, kappa = kappa3, mu = 8.2, scale = 1, type = "Thomas") 
+
+#here is where we have to assign occupancy to each burrow (0.75)
+#in circle plots, 71 1's of 126 burrows #0.56
+occu <- function(pp) {
+  pp$occu <- rbinom(nrow(pp),1,0.56)
+  return(pp)
+  }
+
+length(th2)
+th <- lapply(th,occu)
+th2 <-lapply(th2,occu)
+
 
 #?rThomas
 #The help function obtained by ?rThomas details the meaning of the parameters kappa, mu and scale. 
@@ -142,16 +156,13 @@ clust1 <- ggplot() +
   geom_sf(data=th[[1]], color = "yellow", size=0.5)
 
 #CLUSTERED
-#plots_survey <- st_join(plots, survey_habitat, join = st_within, left=FALSE)
 clust2 <- ggplot() +
   geom_sf(data = island, color = "black", fill = "white", size=1) +
   geom_sf(data = suitable_habitat, color = "white", fill = "darkgrey", size=1) +
   geom_sf(data=plots, color = "blue", fill=NA, size=1)+
   geom_sf(data=th2[[1]], color = "yellow", size=0.5)
 
-#let's see what plots are in surveyable vs non-surveyable areas
 #NOT CLUSTERED
-#plots_survey <- st_join(plots, survey_habitat, join = st_within, left=FALSE)
 clust3 <- ggplot() +
   geom_sf(data = island, color = "black", fill = "white", size=1) +
   geom_sf(data = suitable_habitat, color = "black", fill = "darkgrey", size=1) +
@@ -160,7 +171,6 @@ clust3 <- ggplot() +
   geom_sf(data=th[[1]], color = "yellow", size=0.5)
 
 #CLUSTERED
-#plots_survey <- st_join(plots, survey_habitat, join = st_within, left=FALSE)
 clust4 <- ggplot() +
   geom_sf(data = island, color = "black", fill = "white", size=1) +
   geom_sf(data = suitable_habitat, color = "black", fill = "darkgrey", size=1) +
@@ -184,23 +194,50 @@ ggsave("G:/My Drive/Puffins/Figures/BurrowDensity_CirclePlots_Overview.jpg")
 
 library(tidyverse)
 
+####---- HERE IS WORK WITH PROPORTION OF CIRCLES AND BURROW DENSITY ----####
+
 #what proportion of circles are sampled?
 prop <- c(0.1, 0.25, 0.5, 0.75, 0.9, 1)
 nSamples <- round(nrow(plots)*prop) 
 
 my.samples <- list()
-mean <- sd <- array(data=NA, dim=c(6,nsim,npp))
-temp <- list()
+mean <- occu_mean <- sd <- array(data=NA, dim=c(6,nsim,npp))
+temp <- temp2 <- temp3 <- list()
+occu_vec <- vector()
 
 #we are repeating sims 100x to get at variability of sampling
-for(i in 1:length(nSamples)){
-  for(j in 1:nsim){
-    #getting the same 6x100 plots to sample for each pp
-    temp[[j]] <- sample(c(1:nrow(plots)),nSamples[i])
-    for(k in 1:npp){
-    mean[i,j,k] <- mean(lengths(st_intersects(plots[temp[[j]],], th[[k]])))
-    sd[i,j,k] <- sd(lengths(st_intersects(plots[temp[[j]],], th[[k]])))
-  }}}
+for(i in 1:length(nSamples)){ #six types of sampling
+  for(j in 1:nsim){ #number of repeats on point process
+      #these are selected plots
+      temp[[j]] <- sample(c(1:nrow(plots)),nSamples[i])
+      for(k in 1:npp){ #number of point processes
+        #this is number of burrows for plots intersecting point process
+        temp2[[j]] <- lengths(st_intersects(plots[temp[[j]],], th[[k]]))
+        temp3[[j]] <- st_intersects(plots[temp[[j]],], th[[k]])
+         #this is the number of circular plots
+           for(m in 1:length(temp2[[j]])){
+             if (temp2[[j]][m]==0) {
+              occu_vec[m] <- NA 
+              }
+             else {
+              x <- sample(c(1:temp2[[j]][m]),1)
+              occu_vec[m] <- th[[k]][temp3[[j]][[m]][x],]$occu
+            }
+          }
+        mean[i,j,k] <- mean(temp2[[j]])
+        occu_mean[i,j,k] <- mean(occu_vec, na.rm=T)
+}}}
+
+#BELOW IS MEAN ONLY
+#we are repeating sims 100x to get at variability of sampling
+# for(i in 1:length(nSamples)){
+#   for(j in 1:nsim){
+#     #getting the same 6x100 plots to sample for each pp
+#     temp[[j]] <- sample(c(1:nrow(plots)),nSamples[i])
+#     for(k in 1:npp){
+#     mean[i,j,k] <- mean(lengths(st_intersects(plots[temp[[j]],], th[[k]])))
+#     #sd[i,j,k] <- sd(lengths(st_intersects(plots[temp[[j]],], th[[k]])))
+#   }}}
 
 
 #here is function to make mean and sd for this exercise
@@ -213,6 +250,7 @@ means_fct <- function(tidy) {
     return(means)
 }
 
+
 # sds <-   sd %>% pivot_longer(
 #   cols = starts_with("V"),
 #   values_to = "sd",
@@ -220,13 +258,9 @@ means_fct <- function(tidy) {
 # )
 
 dim(mean)
-test <- as_tibble(mean)
 mean_summ <- means_fct(mean)
 #sd <- as.data.frame(sd)
 mean_summ$prop <- factor(mean_summ$prop, levels = c("10", "25", "50", "75", "90", "100"))
-
-
-y_int = mean(mean)
 #sd$prop <- c("10", "25", "50", "75", "90", "100")
 
 library(ggplot2)
@@ -234,33 +268,56 @@ library(ggplot2)
 #there is a small diff w truth bc 15 m radius of suitable habitat is not surveyable
 test1 <- ggplot(mean_summ, aes(x=prop, y=mean)) +
   geom_boxplot()+
-  # geom_bar(position=position_dodge(), stat="identity",
-  #          colour='black') +
-  # geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2)+
   geom_hline(yintercept=5.4, linetype="dashed",
              color = "red", size=1)+
-  # geom_hline(yintercept=5.319444+2.968503, linetype="dashed",
-  #            color = "red", size=1)+
-  # geom_hline(yintercept=5.319444-2.968503, linetype="dashed",
-  #            color = "red", size=1)+
   scale_x_discrete(breaks=c("10","25","50","75","90","100"),
                    labels=c("10%", "25%", "50%", "75%", "90%", "100%"))+
   xlab("Proportion of plots surveyed")+ ylab("Mean # burrows per plot") + ylim(0,13)
 test1
 
+####---- PLOTS FOR OCCUPANCY ----####
+
+occu_summ <- means_fct(occu_mean)
+#sd <- as.data.frame(sd)
+occu_summ$prop <- factor(occu_summ$prop, levels = c("10", "25", "50", "75", "90", "100"))
+
+occu1 <- ggplot(occu_summ, aes(x=prop, y=mean)) +
+  geom_boxplot()+
+  geom_hline(yintercept=0.56, linetype="dashed",
+             color = "red", size=1)+
+  scale_x_discrete(breaks=c("10","25","50","75","90","100"),
+                   labels=c("10%", "25%", "50%", "75%", "90%", "100%"))+
+  xlab("Proportion of plots surveyed")+ ylab("Estimated occupancy") + ylim(0,1)
+occu1
+
 ####---- MOVING ON TO THE MORE CLUSTERED ONE ----####
 
 my.samples <- list()
-mean <- sd <- array(data=NA, dim=c(6,nsim,npp))
-temp <- list()
+mean <- occu_mean <- sd <- array(data=NA, dim=c(6,nsim,npp))
+temp <- temp2 <- temp3 <- list()
+occu_vec <- vector()
 
-for(i in 1:length(nSamples)){
-  for(j in 1:nsim){
-    #getting the same 6x100 plots to sample for each pp
+#we are repeating sims 100x to get at variability of sampling
+for(i in 1:length(nSamples)){ #six types of sampling
+  for(j in 1:nsim){ #number of repeats on point process
+    #these are selected plots
     temp[[j]] <- sample(c(1:nrow(plots)),nSamples[i])
-    for(k in 1:npp){
-      mean[i,j,k] <- mean(lengths(st_intersects(plots[temp[[j]],], th2[[k]])))
-      sd[i,j,k] <- sd(lengths(st_intersects(plots[temp[[j]],], th2[[k]])))
+    for(k in 1:npp){ #number of point processes
+      #this is number of burrows for plots intersecting point process
+      temp2[[j]] <- lengths(st_intersects(plots[temp[[j]],], th2[[k]]))
+      temp3[[j]] <- st_intersects(plots[temp[[j]],], th2[[k]])
+      #this is th2e number of circular plots
+      for(m in 1:length(temp2[[j]])){
+        if (temp2[[j]][m]==0) {
+          occu_vec[m] <- NA 
+        }
+        else {
+          x <- sample(c(1:temp2[[j]][m]),1)
+          occu_vec[m] <- th2[[k]][temp3[[j]][[m]][x],]$occu
+        }
+      }
+      mean[i,j,k] <- mean(temp2[[j]])
+      occu_mean[i,j,k] <- mean(occu_vec, na.rm=T)
     }}}
 
 mean_summ <- means_fct(mean)
@@ -274,36 +331,58 @@ library(ggplot2)
 #there is a diff w truth bc 15 m radius of suitable habitat is not surveyable
 test2 <- ggplot(mean_summ, aes(x=prop, y=mean)) +
   geom_boxplot()+
-  # geom_bar(position=position_dodge(), stat="identity",
-  #          colour='black') +
-  # geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2)+
   geom_hline(yintercept=5.4, linetype="dashed", 
              color = "red", size=1)+
-  # geom_hline(yintercept=5.319444+2.968503, linetype="dashed",
-  #            color = "red", size=1)+
-  # geom_hline(yintercept=5.319444-2.968503, linetype="dashed",
-  #            color = "red", size=1)+
   scale_x_discrete(breaks=c("10","25","50","75","90","100"),
                    labels=c("10%", "25%", "50%", "75%", "90%", "100%"))+
   xlab("Proportion of plots surveyed")+ ylab("Mean # burrows per plot") + ylim(0,13)
 test2
+
+####---- PLOTS FOR OCCUPANCY ----####
+
+occu_summ <- means_fct(occu_mean)
+#sd <- as.data.frame(sd)
+occu_summ$prop <- factor(occu_summ$prop, levels = c("10", "25", "50", "75", "90", "100"))
+
+occu2 <- ggplot(occu_summ, aes(x=prop, y=mean)) +
+  geom_boxplot()+
+  geom_hline(yintercept=0.56, linetype="dashed",
+             color = "red", size=1)+
+  scale_x_discrete(breaks=c("10","25","50","75","90","100"),
+                   labels=c("10%", "25%", "50%", "75%", "90%", "100%"))+
+  xlab("Proportion of plots surveyed")+ ylab("Estimated occupancy") + ylim(0,1)
+occu2
 
 ####---- MOVING ON TO LESS CLUSTERED, SMALLER AREA SURVEYABLE ----####
 
 nSamples <- round(nrow(plots_survey)*prop)
 
 my.samples <- list()
-mean <- sd <- array(data=NA, dim=c(6,nsim,npp))
-temp <- list()
+mean <- occu_mean <- sd <- array(data=NA, dim=c(6,nsim,npp))
+temp <- temp2 <- temp3 <- list()
+occu_vec <- vector()
 
 #we are repeating sims 100x to get at variability of sampling
-for(i in 1:length(nSamples)){
-  for(j in 1:nsim){
-    #getting the same 6x100 plots to sample for each pp
-    temp[[j]] <- sample(c(1:nrow(plots)),nSamples[i])
-    for(k in 1:npp){
-      mean[i,j,k] <- mean(lengths(st_intersects(plots[temp[[j]],], th[[k]])))
-      sd[i,j,k] <- sd(lengths(st_intersects(plots[temp[[j]],], th[[k]])))
+for(i in 1:length(nSamples)){ #six types of sampling
+  for(j in 1:nsim){ #number of repeats on point process
+    #these are selected plots
+    temp[[j]] <- sample(c(1:nrow(plots_survey)),nSamples[i])
+    for(k in 1:npp){ #number of point processes
+      #this is number of burrows for plots intersecting point process
+      temp2[[j]] <- lengths(st_intersects(plots_survey[temp[[j]],], th[[k]]))
+      temp3[[j]] <- st_intersects(plots_survey[temp[[j]],], th[[k]])
+      #this is the number of circular plots_survey
+      for(m in 1:length(temp2[[j]])){
+        if (temp2[[j]][m]==0) {
+          occu_vec[m] <- NA 
+        }
+        else {
+          x <- sample(c(1:temp2[[j]][m]),1)
+          occu_vec[m] <- th[[k]][temp3[[j]][[m]][x],]$occu
+        }
+      }
+      mean[i,j,k] <- mean(temp2[[j]])
+      occu_mean[i,j,k] <- mean(occu_vec, na.rm=T)
     }}}
 
 mean_summ <- means_fct(mean)
@@ -317,34 +396,58 @@ library(ggplot2)
 #there is a diff w truth bc 15 m radius of suitable habitat is not surveyable
 test3 <- ggplot(mean_summ, aes(x=prop, y=mean)) +
   geom_boxplot()+
-  # geom_bar(position=position_dodge(), stat="identity",
-  #          colour='black') +
-  # geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2)+
   geom_hline(yintercept=5.4, linetype="dashed", 
              color = "red", size=1)+
-  # geom_hline(yintercept=5.319444+2.968503, linetype="dashed",
-  #            color = "red", size=1)+
-  # geom_hline(yintercept=5.319444-2.968503, linetype="dashed",
-  #            color = "red", size=1)+
   scale_x_discrete(breaks=c("10","25","50","75","90","100"),
                    labels=c("10%", "25%", "50%", "75%", "90%", "100%"))+
   xlab("Proportion of plots surveyed")+ ylab("Mean # burrows per plot") + ylim(0,13)
 test3
 
+####---- PLOTS FOR OCCUPANCY ----####
+
+occu_summ <- means_fct(occu_mean)
+#sd <- as.data.frame(sd)
+occu_summ$prop <- factor(occu_summ$prop, levels = c("10", "25", "50", "75", "90", "100"))
+
+occu3 <- ggplot(occu_summ, aes(x=prop, y=mean)) +
+  geom_boxplot()+
+  geom_hline(yintercept=0.56, linetype="dashed",
+             color = "red", size=1)+
+  scale_x_discrete(breaks=c("10","25","50","75","90","100"),
+                   labels=c("10%", "25%", "50%", "75%", "90%", "100%"))+
+  xlab("Proportion of plots surveyed")+ ylab("Estimated occupancy") + ylim(0,1)
+occu3
+
 ####---- MOVING ON TO MORE CLUSTERED, SMALLER AREA SURVEYABLE ----####
 
+nSamples <- round(nrow(plots_survey)*prop)
+
 my.samples <- list()
-mean <- sd <- array(data=NA, dim=c(6,nsim,npp))
-temp <- list()
+mean <- occu_mean <- sd <- array(data=NA, dim=c(6,nsim,npp))
+temp <- temp2 <- temp3 <- list()
+occu_vec <- vector()
 
 #we are repeating sims 100x to get at variability of sampling
-for(i in 1:length(nSamples)){
-  for(j in 1:nsim){
-    #getting the same 6x100 plots to sample for each pp
-    temp[[j]] <- sample(c(1:nrow(plots)),nSamples[i])
-    for(k in 1:npp){
-      mean[i,j,k] <- mean(lengths(st_intersects(plots[temp[[j]],], th2[[k]])))
-      sd[i,j,k] <- sd(lengths(st_intersects(plots[temp[[j]],], th2[[k]])))
+for(i in 1:length(nSamples)){ #six types of sampling
+  for(j in 1:nsim){ #number of repeats on point process
+    #these are selected plots
+    temp[[j]] <- sample(c(1:nrow(plots_survey)),nSamples[i])
+    for(k in 1:npp){ #number of point processes
+      #this is number of burrows for plots intersecting point process
+      temp2[[j]] <- lengths(st_intersects(plots_survey[temp[[j]],], th2[[k]]))
+      temp3[[j]] <- st_intersects(plots_survey[temp[[j]],], th2[[k]])
+      #this is the number of circular plots_survey
+      for(m in 1:length(temp2[[j]])){
+        if (temp2[[j]][m]==0) {
+          occu_vec[m] <- NA 
+        }
+        else {
+          x <- sample(c(1:temp2[[j]][m]),1)
+          occu_vec[m] <- th2[[k]][temp3[[j]][[m]][x],]$occu
+        }
+      }
+      mean[i,j,k] <- mean(temp2[[j]])
+      occu_mean[i,j,k] <- mean(occu_vec, na.rm=T)
     }}}
 
 mean_summ <- means_fct(mean)
@@ -358,19 +461,27 @@ library(ggplot2)
 #there is a diff w truth bc 15 m radius of suitable habitat is not surveyable
 test4 <- ggplot(mean_summ, aes(x=prop, y=mean)) +
   geom_boxplot()+
-  # geom_bar(position=position_dodge(), stat="identity",
-  #          colour='black') +
-  # geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2)+
   geom_hline(yintercept=5.4, linetype="dashed", 
              color = "red", size=1)+
-  # geom_hline(yintercept=5.319444+2.968503, linetype="dashed",
-  #            color = "red", size=1)+
-  # geom_hline(yintercept=5.319444-2.968503, linetype="dashed",
-  #            color = "red", size=1)+
   scale_x_discrete(breaks=c("10","25","50","75","90","100"),
                    labels=c("10%", "25%", "50%", "75%", "90%", "100%"))+
   xlab("Proportion of plots surveyed")+ ylab("Mean # burrows per plot") + ylim(0,13)
 test4
+
+####---- PLOTS FOR OCCUPANCY ----####
+
+occu_summ <- means_fct(occu_mean)
+#sd <- as.data.frame(sd)
+occu_summ$prop <- factor(occu_summ$prop, levels = c("10", "25", "50", "75", "90", "100"))
+
+occu4 <- ggplot(occu_summ, aes(x=prop, y=mean)) +
+  geom_boxplot()+
+  geom_hline(yintercept=0.56, linetype="dashed",
+             color = "red", size=1)+
+  scale_x_discrete(breaks=c("10","25","50","75","90","100"),
+                   labels=c("10%", "25%", "50%", "75%", "90%", "100%"))+
+  xlab("Proportion of plots surveyed")+ ylab("Estimated occupancy") + ylim(0,1)
+occu4
 
 library(cowplot)
 plot_grid(
@@ -381,6 +492,16 @@ plot_grid(
   align="hv"
 )
 ggsave("G:/My Drive/Puffins/Figures/BurrowDensity_CirclePlots.jpg")
+
+plot_grid(
+  occu1, occu2, occu3, occu4,
+  labels=c('A', 'B', 'C', 'D'),
+  # labels = c('little cluster, all surveyable', 'more cluster, all surveyable', 
+  #            'little cluster, 15-m not surveyable', 'more cluster, 15-m not surveyable'),
+  align="hv"
+)
+ggsave("G:/My Drive/Puffins/Figures/Occu_SingleBurrow_CirclePlots.jpg")
+
 
 #need to assign occupancy to all of these burrows -- should use real data, but let's use 0.75 for now
 
