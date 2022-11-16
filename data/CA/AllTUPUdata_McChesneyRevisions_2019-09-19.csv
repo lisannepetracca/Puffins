@@ -1,0 +1,190 @@
+USFWSColonyCode,ColonyName,SurveyDate,AOUCode,EstimatedPopulation,RevisedSurveyDate,RevisedCount,RevisedEstimatedPopulation,Comments
+325-003-00,Prince Island (DN),3-Jul-80,TUPU,8,3-Jul-80,8,8,"Survey count from Colony Status Records Catalog (pg 21). In addition to 8 counted, prevous day 1 adult and egg found in burrow. "
+325-003-00,Prince Island (DN),29-Jul-89,TUPU,7,29-Jul-89,7,27,
+325-006-01,Castle Rock NWR,20-May-89,TUPU,34,20-May-89,34,82,
+325-006-01,Castle Rock NWR,5-Jun-14,TUPU,4,5-Jun-14,,4,"Date not found near this entry other than 21 July 1917 ""four Tufted Puffins"" (Osborne 1972, pg 99). Could be referencing 5 June 2014 aerial count but that was reported as 3 birds not 4. "
+325-006-99,Castle Rock NWR,1-Jun-70,TUPU,50,13-Aug-70,56,50,"Several dates listed, used last one in revised date. Counted 56 total birds on 13 August 1970. ""About 25 pairs bred on the island"" (Osborne 1972, pg 111), likely wherethe population estimate was derived from but no method provided"
+325-006-99,Castle Rock NWR,1-Jul-80,TUPU,100,1-Jul-80,,100,"No specified survey date, used provided date as revised date"
+325-006-99,Castle Rock NWR,,TUPU,,19-Jun-80,40,,ADDED: Survey count from Colony Status Records Catalog (pg 25)
+325-006-99,Castle Rock NWR,,TUPU,22,21-May-79,22,,"ADDED: Survey count from Colony Status Records Catalog (pg 27). In remarks: ""62 burrows counted"""
+325-006-99,Castle Rock NWR,,TUPU,,1-Apr-07,4,,"ADDED: Survey count by R. Golightly, no speficied survey date, revised date as 1 April 2007"
+325-006-99,Castle Rock NWR,,TUPU,,18-Apr-09,3,,ADDED: Survey count by D. Coldren
+325-006-99,Castle Rock NWR,,TUPU,,23-Apr-10,6,,ADDED: Survey count by C. Strong
+325-006-99,Castle Rock NWR,,TUPU,,6-May-10,2,,ADDED: Survey count by C. Strong
+325-006-99,Castle Rock NWR,,TUPU,,7-May-10,7,,ADDED: Survey count by C. Strong
+325-006-99,Castle Rock NWR,,TUPU,,9-May-10,7,,ADDED: Survey count by C. Strong
+325-006-99,Castle Rock NWR,,TUPU,,4-May-11,2,,ADDED: Survey count by C. Strong
+325-006-99,Castle Rock NWR,,TUPU,,8-May-11,6,,ADDED: Survey count by C. Strong
+325-006-99,Castle Rock NWR,,TUPU,,12-Jul-11,1,,ADDED: Survey count by C. Strong
+325-006-99,Castle Rock NWR,,TUPU,,12-May-11,4,,ADDED: Survey count by C. Strong
+325-006-99,Castle Rock NWR,,TUPU,,26-Apr-13,9,,ADDED: Survey count by C. Strong
+325-006-99,Castle Rock NWR,,TUPU,,15-May-14,3,,ADDED: Survey count by C. Strong
+325-006-99,Castle Rock NWR,,TUPU,,5-Jun-14,3,,ADDED: Survey count by S. Schneider
+325-006-99,Castle Rock NWR,,TUPU,,5-May-15,7,,ADDED: Survey count by C. Strong
+325-006-99,Castle Rock NWR,,TUPU,,10-May-15,8,,ADDED: Survey count by C. Strong
+325-006-99,Castle Rock NWR,,TUPU,,1-Jun-16,7,,ADDED: Survey count by C. Strong
+325-006-99,Castle Rock NWR,,TUPU,,28-Apr-17,6,,ADDED: Survey count by C. Strong
+325-006-99,Castle Rock NWR,,TUPU,,2-Jun-17,7,,ADDED: Survey count by C. Strong
+325-006-99,Castle Rock NWR,,TUPU,,2-May-18,3,,ADDED: Survey count by C. Strong
+325-006-99,Castle Rock NWR,,TUPU,,20-Jun-18,9,,ADDED: Survey count by C. Strong
+325-010-00,False Klamath Rock,20-Jun-80,TUPU, ,20-Jun-80,1,0,"Survey count from Colony Status Records Catalog (pg 57). ""1 bird seen."""
+325-010-00,False Klamath Rock,22-May-89,TUPU,1,22-May-89,1,4,
+325-013-00,Redding Rock,,TUPU,,1-Jul-80,,0,"ADDED: New row added for 1980 survey (GJM), no survey date specified, revised date to 1 July 1980"
+325-013-00,Redding Rock,25-Jun-89,TUPU,2,25-Jun-89,2,8,
+,Redding Rock,,,,1-Jul-09,0,0,"None seen over several boat surveys in 2009 (G.J. McChesney, USFWS, unpubl. data)."
+325-019-00,White Rock (HU),18-Jun-70,TUPU,,18-Jun-70,1,,"""1 bird seen flying around rock"" (Osborne 1972, pg 79)"
+325-019-00,White Rock (HU),1-Jan-89,TUPU,0,1-Jan-89,0,0,None observed over several surveys in spring-summer 1989.
+325-020-00,Green Rock,1-Jun-70,TUPU,10,21-May-70,5,10,"""About 5 pairs of puffins nested in 1970"" (Obsborne 1972, pg 78). Survey date was when bird count made. "
+325-020-00,Green Rock,,TUPU,,1-Aug-79,3,,"ADDED: From Colony Status Records (pg 103). ""3 birds seen."" 8 burrows counted."
+325-020-00,Green Rock,,TUPU,,23-Jun-80,2,10,"ADDED: Survey count from Colony Status Records (pg 99). ""2 birds seen.""  Based estimate on Osborne (1970)."
+325-020-00,Green Rock,25-May-89,TUPU,12,25-May-89,12,29,
+,Green Rock,,TUPU,,8-Jun-09,0,,Surveyed by boat at 0830 h and 1330 h by Gerry McChesney.
+,Green Rock,,TUPU,,9-Jun-09,0,0,Surveyed from nearby Elk Head between 0725-0815 h by Gerry McChesney.
+325-021-00,Puffin Rock,1-Jun-70,TUPU,6,1-Jul-70,,6,"Three pairs nested in holes…in 1970"" (Osborne 1970: 71)."
+325-021-00,Puffin Rock,,TUPU,,1-Aug-79,3,,"ADDED: Survey count from Colony Status Records Catalog (pg 107). ""3 birds seen, estimated 6 (III)"""
+325-021-02,Puffin Rock,1-Jul-80,TUPU,6,1-Jul-80,,6,
+325-021-00,Puffin Rock,2-May-89,TUPU,3,2-May-89,3,7,
+325-021-01,Puffin Rock,,TUPU,,8-Jun-09,0,,Surveyed by boat at 1330 h by Gerry McChesney.
+,Puffin Rock,,TUPU,,9-Jun-09,0,0,Surveyed from adjacent Elk Head between 0725-0815 h by Gerry McChesney.
+325-023-00,Flatiron Rock,11-Jul-11,TUPU,,11-Jul-11,,,"""Numerous"", no numbers provided"
+325-023-00,Flatiron Rock,10-Jun-34,TUPU,,10-Jun-34,,,"""Sparse"", no numbers provided"
+325-023-00,Flatiron Rock,1-Jul-53,TUPU,5,1-Jul-53,,5,"Population estimation listed as a range of 4-6, no survey date/year speficied (early 1950's) kept provided date as revised date"
+325-023-00,Flatiron Rock,1-Jun-70,TUPU,2,3-Jun-70,1,2,"""One adult was seen flying around the rock on 3 June and a chick was found in August"" (Osborne 1972, pg 65)"
+325-023-00,Flatiron Rock,1-Aug-79,TUPU,2,1-Aug-79,,2,"Population estimation from Colony Status Records Catalog (pg 115). Also included ""5 birds seen?"" (? In text)"
+325-023-00,Flatiron Rock,1-Jul-80,TUPU,2,1-Jul-80,,2,"No specified survey date in text (Sowls et al. 1980), used provided date as revised date"
+325-023-00,Flatiron Rock,1-Jan-89,TUPU,0,1-Jan-89,,0,Date/entry not found in Sowls or Carter
+325-024-00,Blank Rock,1-Jan-89,TUPU,0,1-Jan-89,,0,Date/entry not found in Sowls or Carter
+325-024-00,Blank Rock,18-Jun-16,TUPU,,18-Jun-16,,,"Population estimation listed as ""X"" in Sowls et al. 1980"
+325-035-00,Little River Rock,,TUPU,,1-Jul-72,,,"Population estimation listed as ""P"" in Sowls et al. 1980 (Harris 1965-72)."
+325-035-00,Little River Rock,1-Jan-89,TUPU,0,1-Jan-89,,0,Date/entry not found in Sowls or Carter
+325-040-02,False Cape Rocks,26-May-89,TUPU,2,26-May-89,2,8,
+325-040-03,False Cape Rocks,26-May-89,TUPU,2,26-May-89,2,8,"Double entry, same date and count as above, no alternate count found in Sowls or Carter"
+325-041-00,Sugarloaf Island,1-Jun-70,TUPU,4,1-Jun-70,,4,"No specified survey date in text that matches date provided. ""I estimated that one ore two pairs of puffins nested on the northeast side"" (Osborne 1972, pg 25). Used provided date as revised date."
+325-041-00,Sugarloaf Island,10-May-79,TUPU,4,10-May-79,3,4,"Survey count from Colony Status Records Catalog (pg 153). ""3 birds and 1 nest in rock crevice  (quality II)"""
+325-041-00,Sugarloaf Island,26-May-89,TUPU,1,26-May-89,1,4,
+379-006-02,Goat Island Area,30-May-89,TUPU,2,30-May-89,2,8,
+379-006-99,Goat Island Area,5-Jun-80,TUPU,4,5-Jun-80,,4,"No date listed in text (in Sowls et al. 1980, citing DeGange, Nelson & Sowls [no year]). Count in Colony Status Records Catalog (pg 22) date matches provided date but lists a count of 3 (quality III) but with no population estimation provided.  "
+379-027-99,Van Damme Cove,18-May-79,TUPU,4,18-May-79,,4,
+379-027-99,Van Damme Cove,6-Jun-80,TUPU,2,6-Jun-80,,2,"No specified survey date in text (Sowls et al. 1980), used provided date as revised date"
+379-027-99,Van Damme Cove,31-May-89,TUPU,0,31-May-89,0,0,Date/entry not found in Sowls or Carter
+404-003-01,Fish Rocks,3-Jun-89,TUPU,4,3-Jun-89,4,15,
+404-003-99,Fish Rocks,7-Jun-80,TUPU,4,7-Jun-80,,4,
+404-003-01,Fish Rocks,6-Jun-11,TUPU,,6-Jun-11,0,0,"ADDED: Survey count and population estimation (G.J. McChesney, USFWS, unpubl. data)"
+404-006-00,Arched Rock,25-Jun-79,TUPU,2,25-Jun-79,,2,
+404-006-00,Arched Rock,5-Jun-89,TUPU,0,5-Jun-89,0,0,
+404-006-00,Arched Rock,21-Jun-11,TUPU,,21-Jun-11,0,0,"ADDED: Survey count and population estimation (G.J. McChesney, USFWS, unpubl. data)"
+404-010-00,Bird Rock (Tomales Point MA),,TUPU,,1-Jul-33,,4,"ADDED: Population estimation from Carter et al. 1992. No speficied survey date (Stephens & Pringle 1933), revised date as 1 July 1933 "
+404-010-00,Bird Rock (Tomales Point MA),5-Jun-89,TUPU,0,5-Jun-89,0,0,
+404-010-00,Bird Rock (Tomales Point MA),20-Jun-11,TUPU,,20-Jun-11,0,0,ADDED: Survey count and population estimation from USFWS data (GJM)
+429-001-03,Point Reyes,6-Jun-89,TUPU,1,6-Jun-89,1,4,
+429-001-99,Point Reyes,1-Jul-78,TUPU,6,1-Jul-78,,6,"Survey dates listed as a range of years in text (LeValley, 1975-80), assuming the median year was used. Used provided date as revised date."
+429-001-99,Point Reyes,1-Jul-96,TUPU,,1-Jul-96,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-001-99,Point Reyes,1-Jul-97,TUPU,,1-Jul-97,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-001-99,Point Reyes,1-Jul-98,TUPU,,1-Jul-98,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-001-99,Point Reyes,1-Jul-99,TUPU,,1-Jul-99,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-001-99,Point Reyes,1-Jul-00,TUPU,,1-Jul-00,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-001-99,Point Reyes,1-Jul-01,TUPU,,1-Jul-01,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-001-99,Point Reyes,1-Jul-02,TUPU,,1-Jul-02,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-001-99,Point Reyes,1-Jul-03,TUPU,,1-Jul-03,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-001-99,Point Reyes,1-Jul-05,TUPU,,1-Jul-05,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-001-99,Point Reyes,1-Jul-06,TUPU,,1-Jul-06,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-001-99,Point Reyes,1-Jul-07,TUPU,,1-Jul-07,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-001-99,Point Reyes,1-Jul-08,TUPU,,1-Jul-08,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-001-99,Point Reyes,1-Jul-09,TUPU,,1-Jul-09,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-001-99,Point Reyes,1-Jul-10,TUPU,,1-Jul-10,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-001-99,Point Reyes,1-Jul-11,TUPU,,1-Jul-11,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-001-99,Point Reyes,1-Jul-12,TUPU,,1-Jul-12,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-001-99,Point Reyes,1-Jul-13,TUPU,,1-Jul-13,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-001-99,Point Reyes,1-Jul-14,TUPU,,1-Jul-14,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-001-99,Point Reyes,1-Jul-15,TUPU,,1-Jul-15,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-001-99,Point Reyes,1-Jul-16,TUPU,,1-Jul-16,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-001-99,Point Reyes,1-Jul-17,TUPU,,1-Jul-17,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-001-99,Point Reyes,1-Jul-18,TUPU,,1-Jul-18,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-001-99,Point Reyes,1-Jul-19,TUPU,,1-Jul-19,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-013-00,San Pedro Rock,,TUPU,,1-Jul-08,6,,"Survey count provided but population estimation listed as ""X"" in text (Carter et al. 1992), no specified survey date (Ray 1909), revised date as 1 July 1908"
+429-013-00,San Pedro Rock,6-Jun-89,TUPU,0,6-Jun-89,0,0,Date/entry not found in Sowls or Carter
+429-013-99,San Pedro Rock,1-Jul-96,TUPU,,1-Jul-96,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-013-99,San Pedro Rock,1-Jul-97,TUPU,,1-Jul-97,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-013-99,San Pedro Rock,1-Jul-98,TUPU,,1-Jul-98,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-013-99,San Pedro Rock,1-Jul-99,TUPU,,1-Jul-99,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-013-99,San Pedro Rock,1-Jul-00,TUPU,,1-Jul-00,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-013-99,San Pedro Rock,1-Jul-01,TUPU,,1-Jul-01,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-013-99,San Pedro Rock,1-Jul-02,TUPU,,1-Jul-02,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-013-99,San Pedro Rock,1-Jul-03,TUPU,,1-Jul-03,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-013-99,San Pedro Rock,1-Jul-04,TUPU,,1-Jul-04,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-013-99,San Pedro Rock,1-Jul-05,TUPU,,1-Jul-05,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-013-99,San Pedro Rock,1-Jul-06,TUPU,,1-Jul-06,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-013-99,San Pedro Rock,1-Jul-07,TUPU,,1-Jul-07,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-013-99,San Pedro Rock,1-Jul-08,TUPU,,1-Jul-08,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-013-99,San Pedro Rock,1-Jul-09,TUPU,,1-Jul-09,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-013-99,San Pedro Rock,1-Jul-10,TUPU,,1-Jul-10,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-013-99,San Pedro Rock,1-Jul-11,TUPU,,1-Jul-11,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-013-99,San Pedro Rock,1-Jul-12,TUPU,,1-Jul-12,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-013-99,San Pedro Rock,1-Jul-13,TUPU,,1-Jul-13,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-013-99,San Pedro Rock,1-Jul-14,TUPU,,1-Jul-14,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-013-99,San Pedro Rock,1-Jul-15,TUPU,,1-Jul-15,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-013-99,San Pedro Rock,1-Jul-16,TUPU,,1-Jul-16,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-013-99,San Pedro Rock,1-Jul-17,TUPU,,1-Jul-17,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-013-99,San Pedro Rock,1-Jul-18,TUPU,,1-Jul-18,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-013-99,San Pedro Rock,1-Jul-19,TUPU,,1-Jul-19,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+429-052-01,South Farallon Islands,1-Jan-89,TUPU,70,1-Jan-89,,,Population estimation TBD based on SFI records (GJM)
+429-052-01,South Farallon Islands,30-May-07,TUPU,5,30-May-07,,,Population estimation TBD based on SFI records (GJM)
+429-052-01,South Farallon Islands,11-Jun-13,TUPU,3,11-Jun-13,,,Population estimation TBD based on SFI records (GJM)
+429-052-02,South Farallon Islands,30-May-07,TUPU,14,30-May-07,,,Population estimation TBD based on SFI records (GJM)
+429-052-02,South Farallon Islands,11-Jun-13,TUPU,14,11-Jun-13,,,Population estimation TBD based on SFI records (GJM)
+429-052-02,South Farallon Islands,9-Jun-14,TUPU,9,9-Jun-14,,,Population estimation TBD based on SFI records (GJM)
+429-052-02,South Farallon Islands,3-Jun-15,TUPU,3,3-Jun-15,,,Population estimation TBD based on SFI records (GJM)
+429-052-02,South Farallon Islands,15-Jun-16,TUPU,9,15-Jun-16,,,Population estimation TBD based on SFI records (GJM)
+429-052-03,South Farallon Islands,30-May-07,TUPU,8,30-May-07,,,Population estimation TBD based on SFI records (GJM)
+429-052-03,South Farallon Islands,11-Jun-13,TUPU,1,11-Jun-13,,,Population estimation TBD based on SFI records (GJM)
+429-052-99,South Farallon Islands,1-Jun-69,TUPU,50,1-Jun-69,,,Population estimation TBD based on SFI records (GJM)
+429-052-99,South Farallon Islands,1-Jun-72,TUPU,55,1-Jun-72,,,Population estimation TBD based on SFI records (GJM)
+454-011-99,Hurricane Point Rocks,12-Jun-80,TUPU,2,12-Jun-80,,2,"Survey count listed as ""ND"" in text (Carter et al. 1992)"
+454-011-99,Hurricane Point Rocks,21-Jun-89,TUPU,0,21-Jun-89,,0,Entry not found in Sowls or Carter
+454-011-99,Hurricane Point Rocks,1-Jul-96,TUPU,,1-Jul-96,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+454-011-99,Hurricane Point Rocks,1-Jul-97,TUPU,,1-Jul-97,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+454-011-99,Hurricane Point Rocks,1-Jul-98,TUPU,,1-Jul-98,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+454-011-99,Hurricane Point Rocks,1-Jul-99,TUPU,,1-Jul-99,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+454-011-99,Hurricane Point Rocks,1-Jul-00,TUPU,,1-Jul-00,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+454-011-99,Hurricane Point Rocks,1-Jul-01,TUPU,,1-Jul-01,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+454-011-99,Hurricane Point Rocks,1-Jul-02,TUPU,,1-Jul-02,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+454-011-99,Hurricane Point Rocks,1-Jul-03,TUPU,,1-Jul-03,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+454-011-99,Hurricane Point Rocks,1-Jul-04,TUPU,,1-Jul-04,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+454-011-99,Hurricane Point Rocks,1-Jul-05,TUPU,,1-Jul-05,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+454-011-99,Hurricane Point Rocks,1-Jul-06,TUPU,,1-Jul-06,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+454-011-99,Hurricane Point Rocks,1-Jul-07,TUPU,,1-Jul-07,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+454-011-99,Hurricane Point Rocks,1-Jul-08,TUPU,,1-Jul-08,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+454-011-99,Hurricane Point Rocks,1-Jul-09,TUPU,,1-Jul-09,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+454-011-99,Hurricane Point Rocks,1-Jul-10,TUPU,,1-Jul-10,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+454-011-99,Hurricane Point Rocks,1-Jul-11,TUPU,,1-Jul-11,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+454-011-99,Hurricane Point Rocks,1-Jul-12,TUPU,,1-Jul-12,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+454-011-99,Hurricane Point Rocks,1-Jul-13,TUPU,,1-Jul-13,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+454-011-99,Hurricane Point Rocks,1-Jul-14,TUPU,,1-Jul-14,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+454-011-99,Hurricane Point Rocks,1-Jul-15,TUPU,,1-Jul-15,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+454-011-99,Hurricane Point Rocks,1-Jul-16,TUPU,,1-Jul-16,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+454-011-99,Hurricane Point Rocks,1-Jul-17,TUPU,,1-Jul-17,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+454-011-99,Hurricane Point Rocks,1-Jul-18,TUPU,,1-Jul-18,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+454-011-99,Hurricane Point Rocks,1-Jul-19,TUPU,,1-Jul-19,0,0,"ADDED: Survey count and population estimation based on multiple seasonal surveys (G.J. McChesney, USFWS, unpubl. data)"
+454-022-99,Pescadero Rocks,10-Jun-89,TUPU,0,10-Jun-89,0,0,Listed by Carter et al. (1992) as historic colony.
+454-023-99,Guillemot Island Area,10-Jun-89,TUPU,0,10-Jun-89,0,0,Listed by Carter et al. (1992) as historic colony.
+477-007-00,Piedras Blancas Island,17-Jul-70,TUPU,2,19-Jul-70,,2,"Multiple July survey dates in same year, used the latest July date as revised date"
+477-007-00,Piedras Blancas Island,26-Jun-79,TUPU,2,26-Jun-79,,2,
+477-007-00,Piedras Blancas Island,1-Jul-80,TUPU,0,1-Jul-80,,0,"Based on Jameson (1980), in Sowls et al. (1980). "
+477-007-00,Piedras Blancas Island,12-Jun-89,TUPU,0,12-Jun-89,0,0,
+477-032-00,Pecho Rock,,TUPU,,1-Jul-08,,,"ADDED: Survey count and copulation estimation from Carter et al. 1992. Survey count listed as ""ND"" and population estimation listed as ""X"", no specified survey date (Willett 1909), revised date as 1 July 1909."
+477-032-00,Pecho Rock,15-Jun-89,TUPU,0,15-Jun-89,,0,Entry not found in Sowls or Carter
+501-004-00,Prince Island (SMI),1-Jul-05,TUPU,,1-Jul-05,,,"Population estimation listed as ""X"", no specified survey date in text (Burt 1905), used provided date"
+501-004-00,Prince Island (SMI),1-Jul-06,TUPU,,1-Jul-06,,,"Population estimation listed as ""X"", no specified survey date in text (Burt & Appleton 1906), used provided date as revised date"
+501-004-00,Prince Island (SMI),1-Jul-10,TUPU,,1-Jul-10,,,"Population estimation listed as ""X"", no specified survey date in text (Willet 1910), used provided date used provided date as revised date"
+501-004-00,Prince Island (SMI),1-Jul-12,TUPU,,1-Jul-12,,,"Population estimation listed as ""X"", no specified survey date in text (Wright & Snyder 1912), used provided date used provided date as revised date"
+501-004-00,Prince Island (SMI),1-Jul-65,TUPU,0,1-Jul-65,,0,"No specified survey date in text (Craig & Sheppard 1965), used provided date used provided date as revised date"
+501-004-00,Prince Island (SMI),1-Jul-68,TUPU,0,1-Jul-68,,0,"No specified survey date in text (POBSP personel 1968), used provided date used provided date as revised date"
+501-004-00,Prince Island (SMI),1-Jul-77,TUPU,0,1-Jul-77,,0,"Range of years, used last one, no specified survey date in text, used provided date used provided date as revised date"
+501-004-00,Prince Island (SMI),8-Jun-91,TUPU,4,8-Jun-91,4,10,
+502-009-99,Anacapa Island East,,TUPU,,1-Jul-17,,,"ADDED: Survey count and population estimation from Carter et al. 1995. Survey count listed as ""ND"" and population estimation listed as ""X"". No specified survey date in text (Howell 1917), revised date as 1 July 1917"
+502-009-99,Anacapa Island East,1-Jan-91,TUPU,0,1-Jan-91,0,0,Entry not found in Sowls or Carter
+502-016-99,West Point Area,,TUPU,,1-Jul-13,,,"ADDED: Population estimation from Carter et al. 1992. Population estimate listed as ""X"", no specified survey date in text (Wright & Snyder 1913), revised date as 1 July 1912"
+502-016-99,West Point Area,13-May-91,TUPU,0,13-May-91,,0,"Entry not found in Sowls or Carter, used provided date as revised date"
+524-007-00,Shag Rock,,TUPU,,1-Jul-12,5,,"ADDED: Survey count and opulation estimation from Carter et al. 1992. Survey count provided but population estimation listed as X, no specified survey date in text (Wright & Snyder 1913), revised date as 1 July 1912"
+524-007-00,Shag Rock,1-May-91,TUPU,0,1-May-91,,0,"Date/entry not found in Sowls or Carter, used provided date as revised date"
+524-008-99,Santa Barbara Island,1-Jan-91,TUPU,0,1-Jan-91,0,0,Date/entry not found in Sowls or Carter
