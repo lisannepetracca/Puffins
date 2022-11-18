@@ -95,63 +95,127 @@ dim(plots_survey) #1688 are surveyable
 
 ####---- HERE IS WORK WITH POPULATION TREND AND THEN PROPORTION OF CIRCLES SAMPLED ----####
 
-#create 10%, 25%, and 50% loss each 5-yr period for 10-yr period at burrow level
-#these are % decline each 5-yr period 
-34833 * 0.9 * 0.9
-34833 * 0.75 * 0.75
-34833 * 0.5 * 0.5
-
-growth <- c(1, 0.9, 0.75, 0.5)
-ids_100 <- ids_90 <- ids_75 <- ids_50 <- list()
+growth <- c(1, 0.9, 0.75, 0.5, 0.25)
+th_t2_100perc <- th_t2_90perc <- th_t2_75perc <- th_t2_50perc <- th_t2_25perc <- list()
+th_t3_100perc <- th_t3_90perc <- th_t3_75perc <- th_t3_50perc <- th_t3_25perc <- list()
 
 nrow(th[[1]])
 
+#generate t=2
 for(i in 1:100){
-  ids_100[[i]] <- sample(c(1:nrow(th[[i]])),nrow(th[[i]])*growth[1]*growth[1])
-  ids_90[[i]] <- sample(c(1:nrow(th[[i]])),nrow(th[[i]])*growth[2]*growth[2])
-  ids_75[[i]] <- sample(c(1:nrow(th[[i]])),nrow(th[[i]])*growth[3]*growth[3])
-  ids_50[[i]] <- sample(c(1:nrow(th[[i]])),nrow(th[[i]])*growth[4]*growth[4])
+  th_t2_100perc[[i]] <- sample(c(1:nrow(th[[i]])),nrow(th[[i]])*sqrt(growth[1]))
+  th_t2_90perc[[i]] <- sample(c(1:nrow(th[[i]])),nrow(th[[i]])*sqrt(growth[2]))
+  th_t2_75perc[[i]] <- sample(c(1:nrow(th[[i]])),nrow(th[[i]])*sqrt(growth[3]))
+  th_t2_50perc[[i]] <- sample(c(1:nrow(th[[i]])),nrow(th[[i]])*sqrt(growth[4]))
+  th_t2_25perc[[i]] <- sample(c(1:nrow(th[[i]])),nrow(th[[i]])*sqrt(growth[5]))
 }
 
-length(ids_100[[1]])
-length(ids_90[[1]])
-length(ids_75[[1]])
-length(ids_50[[1]]) #ok, these all check out as to remaining ids
+#generate t=3
+for(i in 1:100){
+  th_t3_100perc[[i]] <- sample(c(1:length(th_t2_100perc[[i]])),length(th_t2_100perc[[i]])*sqrt(growth[1]))
+  th_t3_90perc[[i]] <- sample(c(1:length(th_t2_90perc[[i]])),length(th_t2_90perc[[i]])*sqrt(growth[2]))
+  th_t3_75perc[[i]] <- sample(c(1:length(th_t2_75perc[[i]])),length(th_t2_75perc[[i]])*sqrt(growth[3]))
+  th_t3_50perc[[i]] <- sample(c(1:length(th_t2_50perc[[i]])),length(th_t2_50perc[[i]])*sqrt(growth[4]))
+  th_t3_25perc[[i]] <- sample(c(1:length(th_t2_25perc[[i]])),length(th_t2_25perc[[i]])*sqrt(growth[5]))
+}
+
+length(th_t3_25perc[[1]])
 
 #so this is a list of ids at the end of 10 years for no change & 90%, 75%, 50% change every 5 years
-all_ids <- list(ids_100, ids_90, ids_75, ids_50)
-all_ids[[1]][[1]]
-#what proportion of circles are sampled?
-prop <- c(0.1, 0.25, 0.5, 0.75, 0.9, 1)
-nSamples <- round(nrow(plots)*prop) 
+all_ids <- list(th_t2_100perc, th_t2_90perc, th_t2_75perc, th_t2_50perc, th_t2_25perc, 
+                th_t3_100perc, th_t3_90perc, th_t3_75perc, th_t3_50perc, th_t3_25perc)
 
-mean <- array(NA, dim =c(6,100,4))
-temp <- temp2 <- list()
-occu_vec <- vector()
+all_ids[[1]][[1]]
+
+#what proportion of circles are sampled?
+# prop <- c(0.1, 0.25, 0.5, 0.75, 0.9, 1)
+# nSamples <- round(nrow(plots)*prop) 
+
+nSamples <- c(50, 100, 250, 500, 1000) 
+
+abundance_est <- abundance_true <- sd <- bias <- rmse <- lambda <- array(NA, dim=c(length(nSamples), length(all_ids), nsim))
+temp <- temp2 <- var <- list()
+#occu_vec <- vector()
+
+#let's do the negative binomial thing
+library(MASS)
+plot.area <- pi*2.5^2
+total.area <- st_area(suitable_habitat)
+M <- total.area/plot.area #this is the number of potential sampling units
+
+#getting N1 abundance in the right place
+for(i in 1:nsim){
+  abundance_true[,,i] <- nrow(th[[i]])
+}
+
+mean(abundance_true)
+abundance_true[,,4]
+
+#nplot <- length(nplots)
 
 #we are repeating sims 100x to get at variability of sampling
 
 for(i in 1:length(nSamples)){ #six types of sampling
-  for(j in 1:nsim){ #number of repeats on point process
-    for(k in 1:length(growth)){
-    temp <- sample(c(1:nrow(plots)),nSamples[i])#these are selected plots (this won't change)
-    #this is number of burrows for plots intersecting point process
-    temp2 <- lengths(st_intersects(plots[temp,], th[[j]][all_ids[[k]][[j]],]))
-    mean[i,j,k] <- mean(temp2)
-  }}}
-
-library(dplyr)
-
+  for(j in 1:length(all_ids))
+    for(k in 1:nsim){ #number of repeats on point process
+    temp <- sample(c(1:nrow(plots)),nSamples[i])#these are selected plots
+    #this is number of burrows for each plot intersecting point process
+    temp2 <- lengths(st_intersects(plots[temp,], th[[k]][all_ids[[j]][[k]],]))
+    
+    #this is the model of the mean
+    mod.mn <- glm.nb(temp2 ~ 1)
+    
+    #note, log link 
+    abundance_est[i,j,k] <- (exp(mod.mn$coefficients)*M) #total.area/plot.area is big M
+    
+    #empirical variance of the estimate (plot-level abundance) is: 
+    var <- exp(mod.mn$coefficients) + exp(mod.mn$coefficients)^2/summary(mod.mn)$theta #this is s squared
+    
+    #SD(abundance) = 
+    sd[i,j,k] <- sqrt(M^2 * (var / nSamples[i]) * (1-(nSamples[i]/M))) 
+    bias[i,j,k] <- abundance_est[i,j,k] - nrow(th[[k]])
+    rmse[i,j,k] <- (var + bias[i,j,k]^2)^1/2
+    
+    #lambda
+    lambda[i,j,k] <- (abundance_true[i,j,k] - abundance_est[i,j,k])/abundance_true[i,j,k]
+    }}
 
 #here is function to make mean and sd for this exercise
-# means_fct <- function(tidy) {
-#   means <- as_tibble(tidy) %>% mutate(prop = c("10", "25", "50", "75", "90", "100")) %>%
-#     pivot_longer(cols = starts_with("V"),
-#                  values_to = "mean",
-#                  values_drop_na = TRUE) %>%
-#     
-#     return(means)
-# }
+
+lam_matrix <- as.data.frame.table(lambda)
+length(unique(lam_matrix$Var1))
+lam_matrix$Var1 <- recode(lam_matrix$Var1, A = "50", B = "100", C = "250",
+                            D= "500", E = "1000")
+length(unique(lam_matrix$Var2))
+lam_matrix$Var2 <- recode(lam_matrix$Var2, A = "T2, 0%", B = "T2, 10%", 
+                           C = "T2, 25%", D = "T2, 50%", E = "T2, 75%",
+                           F = "T3, 0%", G = "T3, 10%", 
+                           H = "T3, 25%", I = "T3, 50%", J = "T3, 75%")
+lam_matrix <- lam_matrix %>% separate(Var2, c("A", "B"))
+lam_matrix <- lam_matrix %>% filter(A=="T3")
+
+head(lam_matrix)
+
+library(ggplot2)
+
+hline_dat = data.frame(B=c("0", "10", "25",
+                              "50", "75"),
+                       threshold=c(0, 0.1, 0.25, 0.5, 0.75))
+hum_names <- as_labeller(
+  c(`0` = "0% Decline", `10` = "10% Decline",`25` = "25% Decline", 
+    `50` = "50% Decline",`75` = "75% Decline"))
+
+test1 <- ggplot(lam_matrix, aes(x=Var1, y=Freq)) +
+  geom_boxplot(aes(fill=B))+
+  geom_hline(data=hline_dat, aes(yintercept=threshold), colour="plum", size=1, lty=2) +
+  # scale_x_discrete(breaks=c("50", "100", "250", "500", "1000"),
+  #                  labels=c("10%", "25%", "50%", "75%", "90%", "100%"))+
+  xlab("Number of plots surveyed")+ theme_bw() + ylab("Estimated decline") +
+  facet_grid(~B, labeller = hum_names)+#+ ylim(-1,1)+
+  scale_fill_manual(values = c('#edf8fb','#b3cde3','#8c96c6','#8856a7','#810f7c'))+
+  theme(legend.position = "none")
+test1
+ggsave("G:/My Drive/Puffins/Figures/BurrowDensity_CirclePlots_SinglePP_Aiktak_Trend_diffcol.jpg")
 
 dim(meanz)
 mean_dup <- mean
@@ -174,16 +238,7 @@ trend_matrix$Var1 <- recode(trend_matrix$Var1, A = "10%", B = "25%", C = "50%",
                     D= "75%", E = "90%", F="100%")
 trend_matrix$Var3 <- recode(trend_matrix$Var3, A = "No Decline", B = "19% Decline", C = "44% Decline",
                     D= "75% Decline")
-hline_dat = data.frame(Var3=c("No Decline", "19% Decline", "44% Decline",
-                              "75% Decline"),
-                       threshold=c(0, 19, 43.75, 75))
 
-
-library(ggplot2)
-
-test1 <- ggplot(trend_matrix, aes(x=Var1, y=Freq)) +
-  geom_boxplot()+
-  geom_hline(data=hline_dat, aes(yintercept=threshold), colour="salmon", size=1, lty=2) +
   scale_x_discrete(breaks=c("10%","25%","50%","75%","90%","100%"),
                    labels=c("10%", "25%", "50%", "75%", "90%", "100%"))+
   xlab("Proportion of plots surveyed")+ ylab("Estimated Population Decline (%)") + #ylim(-1,1)+
