@@ -1,5 +1,6 @@
 library(sf)
 library(ggplot2)
+library(tidyverse)
 
 #creating single point w center 750, 750; this will allow for size of destruction island (WA) and aiktak island (AK)
 pt.df   <- data.frame(pt = 1, x = 750, y = 750)
@@ -58,60 +59,11 @@ ggplot() +
 #a resource for spatstat
 # http://spatstat.org/Melb2018/solutions/solution09.html
 
-
-#goes from more homogeneous to more clustered
-#real data says mean of 5.41 and sd of 3.72
-
-#setting seed and creating clustered point processes
-#calls spatstat.random::rThomas
-
-#th <- list()
-
-# library(sf)
-# library(spatstat)
-# #here is code for testing via grid search of kappa and mu; the latter would be provided as vectors
-# kappa <- 0.0785
-# mu <- 3.51
-# c <- expand.grid(kappa, mu)
-# test <- rep(list(list()), nrow(c))
-# #nsim <- 20
-#   for(i in 1:nrow(c)){
-#     for(j in 1:15){
-#     temp = st_sample(suitable_habitat, kappa = c$Var1[i], mu = c$Var2[i], scale = 1, type = "Thomas") #3.6 scale
-#     test[[i]][[j]] <- temp
-#     }}
-# 
-# burrow_count <- rep(list(list()), nrow(c))
-# 
-# for(i in 1:nrow(c)){
-#   for(j in 1:15){
-#   burrow_count[[i]][[j]] <- lengths(st_intersects(plots, test[[i]][[j]]))
-#   }}
-#  
-# #getting mean and sd of burrow count over those sims
-# test <- list() 
-# for(i in 1:nrow(c)){
-# test[[i]] <- unlist(lapply(burrow_count[[i]], mean))
-# }
-# (test <- unlist(lapply(test, mean)))
-# test <- list() 
-# for(i in 1:nrow(c)){
-#   test[[i]] <- unlist(lapply(burrow_count[[i]], sd))
-# }
-# (test <- unlist(lapply(test, mean)))
-
-
-#ok now that we have our kappa and mu, let's do 600 point processes
-#real data says mean of 5.41 and sd of 3.72
-
-#setting seed and creating clustered point processes
-#calls spatstat.random::rThomas
-
 th <- list()
 
 library(sf)
 library(spatstat)
-#here is code for testing via grid search of kappa and mu; the latter would be provided as vectors
+
 set.seed(23)
 kappa <- 0.0785
 mu <- 3.51
@@ -131,7 +83,6 @@ for(i in 1:nsim){
 mean_tot <- mean_sim <- list()
 sd_tot <- sd_sim <- list()
 
-#this is grand mean and sd
 (mean_tot <- mean(unlist(lapply(burrow_count, mean))))
 (sd_tot <- mean(unlist(lapply(burrow_count, sd))))
 
@@ -171,14 +122,15 @@ nogo_buffer <- st_buffer(island, dist = -15)
 nogo_habitat <- st_difference(island, nogo_buffer)
 survey_habitat <- st_difference(suitable_habitat, nogo_habitat)
 
+#let's see what plots are in surveyable areas
+plots_survey <- st_join(plots, survey_habitat, join = st_within, left=FALSE)
+
 ggplot() +
   geom_sf(data = island, color = "black", fill = "white", size=1) +
   geom_sf(data = suitable_habitat, color = "black", fill = "black", size=1) +
   geom_sf(data = survey_habitat, color = "black", fill = "darkgreen", size=1)
 
-#let's see what plots are in surveyable areas
-plots_survey <- st_join(plots, survey_habitat, join = st_within, left=FALSE)
-
+#plots_survey stuff
 clust1 <- ggplot() +
   geom_sf(data = island, color = "black", fill = "white", size=1) +
   geom_sf(data = suitable_habitat, color = "white", fill = "darkgrey", size=1) +
@@ -200,94 +152,115 @@ plot_grid(
   #            '15-m not surveyable'),
   align="hv"
 )
-ggsave("G:/My Drive/Puffins/Figures/BurrowDensity_CirclePlots_Overview_SinglePP.jpg")
+#ggsave("G:/My Drive/Puffins/Figures/BurrowDensity_CirclePlots_Overview_SinglePP.jpg")
 
-#true density of burrows in suitable habitat is
-#nrow(th)/st_area(suitable_habitat) #0.323726/m2
-
-library(tidyverse)
 
 ####---- HERE IS WORK WITH PROPORTION OF CIRCLES AND BURROW DENSITY ----####
 
 #what proportion of circles are sampled?
 prop <- c(0.1, 0.25, 0.5, 0.75, 0.9, 1)
-nSamples <- round(nrow(plots)*prop) 
+#one strategy
+#nSamples <- round(nrow(plots)*prop) 
+#second strategy
+nSamples <- c(50, 100, 250, 500, 1000) 
 
-my.samples <- list()
-mean <- occu_mean <- sd <- matrix(NA, nrow=6,ncol=nsim)
-temp <- temp2 <- temp3 <- list()
-occu_vec <- vector()
+abundance <- sd <- bias <- rmse <- matrix(NA, nrow=5,ncol=nsim)
+temp <- temp2 <- var <- list()
+#occu_vec <- vector()
+
+#let's do the negative binomial thing
+library(MASS)
+plot.area <- pi*2.5^2
+total.area <- area(suitable_habitat)
+M <- total.area/plot.area #this is the number of potential sampling units
+
+#nplot <- length(nplots)
 
 #we are repeating sims 100x to get at variability of sampling
 
 for(i in 1:length(nSamples)){ #six types of sampling
   for(j in 1:nsim){ #number of repeats on point process
     temp <- sample(c(1:nrow(plots)),nSamples[i])#these are selected plots
-    #this is number of burrows for plots intersecting point process
+    #this is number of burrows for each plot intersecting point process
     temp2 <- lengths(st_intersects(plots[temp,], th[[j]]))
-    #this provides id's of burrows within those intersecting plots
-    temp3 <- st_intersects(plots[temp,], th[[j]])
-    #this is the number of circular plots
-    for(m in 1:length(temp2)){
-      if (temp2[m]==0) {
-        occu_vec[m] <- NA 
-      }
-      else {
-        x <- sample(c(1:temp2[m]),1)
-        occu_vec[m] <- th[[j]][temp3[[m]][x],]$occu
-      }
-    }
-    mean[i,j] <- mean(temp2)
-    occu_mean[i,j] <- mean(occu_vec, na.rm=T)
+    
+    #this is the model of the mean
+    mod.mn <- glm.nb(temp2 ~ 1)
+    
+    #note, log link 
+    abundance[i,j] <- (exp(mod.mn$coefficients)*M) #total.area/plot.area is big M
+    
+    #empirical variance of the estimate (plot-level abundance) is: 
+    var <- exp(mod.mn$coefficients) + exp(mod.mn$coefficients)^2/summary(mod.mn)$theta #this is s squared
+    
+    #SD(abundance) = 
+    sd[i,j] <- sqrt(M^2 * (var / nSamples[i]) * (1-(nSamples[i]/M))) 
+    bias[i,j] <- abundance[i,j] - nrow(th[[j]])
+    rmse[i,j] <- (var + bias[i,j]^2)^1/2
   }}
 
-#BELOW IS MEAN ONLY
-#we are repeating sims 100x to get at variability of sampling
-# for(i in 1:length(nSamples)){
-#   for(j in 1:nsim){
-#     #getting the same 6x100 plots to sample for each pp
-#     temp[[j]] <- sample(c(1:nrow(plots)),nSamples[i])
-#     for(k in 1:npp){
-#     mean[i,j,k] <- mean(lengths(st_intersects(plots[temp[[j]],], th[[k]])))
-#     #sd[i,j,k] <- sd(lengths(st_intersects(plots[temp[[j]],], th[[k]])))
-#   }}}
+sum(lapply(nrow(th)))
 
-library(tidyverse)
+#do this at two time periods
+#ratio of abundance is trend (Nt-N(t+10))/N(t)
+
+#then would calculate variance around this
+#bootstrap?
+
+test <- as_tibble(bias)
 #here is function to make mean and sd for this exercise
-means_fct <- function(tidy) {
-  means <- as_tibble(tidy) %>% mutate(prop = c("10", "25", "50", "75", "90", "100")) %>%
+process_fct <- function(tidy) {
+  term <- as_tibble(tidy) %>% mutate(nplot = c("50", "100", "250", "500", "1000")) %>%
     pivot_longer(cols = starts_with("V"),
                  values_to = "mean",
                  values_drop_na = TRUE) %>%
     
-    return(means)
+    return(term)
 }
 
-# sds <-   sd %>% pivot_longer(
-#   cols = starts_with("V"),
-#   values_to = "sd",
-#   values_drop_na = TRUE
-# )
-
 dim(mean)
-mean_dup <- mean
-mean_real <- as.data.frame(matrix(mean_sim, nrow=6, ncol=nsim, byrow=T))
-mean_diff <- mean_dup - mean_real
-mean_summ1 <- means_fct(mean_diff)
+bias_dup <- bias
+rmse_dup <- rmse
+bias_tib <- process_fct(bias_dup)
+rmse_tib <- process_fct(rmse_dup)
+# mean_real <- as.data.frame(matrix(mean_sim, nrow=6, ncol=nsim, byrow=T))
+# mean_diff <- mean_dup - mean_real
+# mean_summ1 <- means_fct(mean_diff)
+
 #sd <- as.data.frame(sd)
-mean_summ1$prop <- factor(mean_summ1$prop, levels = c("10", "25", "50", "75", "90", "100"))
+bias_tib$nplot <- factor(bias_tib$nplot, levels = c("50", "100", "250", "500", "1000"))
+rmse_tib$nplot <- factor(rmse_tib$nplot, levels = c("50", "100", "250", "500", "1000"))
 #sd$prop <- c("10", "25", "50", "75", "90", "100")
 
 library(ggplot2)
 
-test1 <- ggplot(mean_summ1, aes(x=prop, y=mean)) +
-  geom_boxplot()+
+test1 <- ggplot(bias_tib, aes(x=nplot, y=mean)) +
+  geom_boxplot(fill="lightblue")+
   geom_hline(yintercept=0, linetype="dashed",
-             color = "red", size=1)+
-  scale_x_discrete(breaks=c("10","25","50","75","90","100"),
-                   labels=c("10%", "25%", "50%", "75%", "90%", "100%"))+
-  xlab("Proportion of plots surveyed")+ ylab("Deviation of mean burrow density from known mean") + ylim(-1,1)
+             color = "plum", size=1)+
+  # scale_x_discrete(breaks=c("50", "100", "250", "500", "1000"),
+  #                  labels=c("10%", "25%", "50%", "75%", "90%", "100%"))+
+  xlab("Number of plots surveyed")+ theme_classic() + ylab("Bias") #+ ylim(-1,1)
 test1
+
+test2 <- ggplot(rmse_tib, aes(x=nplot, y=mean)) +
+  geom_boxplot(fill="lightblue")+
+  geom_hline(yintercept=0, linetype="dashed",
+             color = "plum", size=1)+
+  # scale_x_discrete(breaks=c("50", "100", "250", "500", "1000"),
+  #                  labels=c("10%", "25%", "50%", "75%", "90%", "100%"))+
+  xlab("Number of plots surveyed")+ theme_classic() + ylab("RMSE") #+ ylim(-1,1)
+test2
+
+library(cowplot)
+plot_grid(
+  test1, test2,
+  labels=c('A', 'B'),
+  # labels = c('all surveyable', 
+  #            '15-m not surveyable'),
+  align="hv"
+)
+ggsave("G:/My Drive/Puffins/Figures/BurrowDensity_CirclePlots_SinglePP_Aiktak_Bias_RMSE.jpg")
 
 ####---- PLOTS FOR OCCUPANCY ----####
 
@@ -523,22 +496,37 @@ ggsave("G:/My Drive/Puffins/Figures/Occu_OneAndTwoBurrow_CirclePlots_SinglePP_Ai
 
 
 
-#DISCARDED
-N <- 7
-r <- 5
-theta <- 80
-x <- y <- vector()
+#GRID SEARCH FOR KAPPA AND MU
 
-for(n in 1:N){
-  x[n] = r * cos(2*pi*n/N + theta) #+ x_centre
-  y[n] = r * sin(2*pi*n/N + theta) #+ y_centre
-}
-plot(x, y)
-df <- as.data.frame(cbind(x,y))
-library(sf)
-library(tidyverse)
-polygon <- df %>%
-  st_as_sf(coords = c("x", "y"), crs = 4326) %>%
-  summarise(geometry = st_combine(geometry)) %>%
-  st_cast("POLYGON")
-plot(polygon)
+# library(sf)
+# library(spatstat)
+# #here is code for testing via grid search of kappa and mu; the latter would be provided as vectors
+# kappa <- 0.0785
+# mu <- 3.51
+# c <- expand.grid(kappa, mu)
+# test <- rep(list(list()), nrow(c))
+# #nsim <- 20
+#   for(i in 1:nrow(c)){
+#     for(j in 1:15){
+#     temp = st_sample(suitable_habitat, kappa = c$Var1[i], mu = c$Var2[i], scale = 1, type = "Thomas") #3.6 scale
+#     test[[i]][[j]] <- temp
+#     }}
+# 
+# burrow_count <- rep(list(list()), nrow(c))
+# 
+# for(i in 1:nrow(c)){
+#   for(j in 1:15){
+#   burrow_count[[i]][[j]] <- lengths(st_intersects(plots, test[[i]][[j]]))
+#   }}
+#  
+# #getting mean and sd of burrow count over those sims
+# test <- list() 
+# for(i in 1:nrow(c)){
+# test[[i]] <- unlist(lapply(burrow_count[[i]], mean))
+# }
+# (test <- unlist(lapply(test, mean)))
+# test <- list() 
+# for(i in 1:nrow(c)){
+#   test[[i]] <- unlist(lapply(burrow_count[[i]], sd))
+# }
+# (test <- unlist(lapply(test, mean)))
