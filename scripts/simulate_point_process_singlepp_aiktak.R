@@ -158,7 +158,7 @@ plot_grid(
 ####---- HERE IS WORK WITH PROPORTION OF CIRCLES AND BURROW DENSITY ----####
 
 #what proportion of circles are sampled?
-prop <- c(0.1, 0.25, 0.5, 0.75, 0.9, 1)
+#prop <- c(0.1, 0.25, 0.5, 0.75, 0.9, 1)
 #one strategy
 #nSamples <- round(nrow(plots)*prop) 
 #second strategy
@@ -231,8 +231,6 @@ rmse_tib <- process_fct(rmse_dup)
 bias_tib$nplot <- factor(bias_tib$nplot, levels = c("50", "100", "250", "500", "1000"))
 rmse_tib$nplot <- factor(rmse_tib$nplot, levels = c("50", "100", "250", "500", "1000"))
 #sd$prop <- c("10", "25", "50", "75", "90", "100")
-
-library(ggplot2)
 
 test1 <- ggplot(bias_tib, aes(x=nplot, y=mean)) +
   geom_boxplot(fill="lightblue")+
