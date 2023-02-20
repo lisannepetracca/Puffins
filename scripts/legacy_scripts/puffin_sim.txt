@@ -1,0 +1,19 @@
+
+    model {
+    
+    p ~ dbeta(1,1)
+    for(i in 1:colonies){
+    psi[i] ~ dbeta(1,1)
+    }
+    
+  # likelihood 
+for(i in 1:colonies){
+for(j in 1:visits){
+    y[i,j] ~ dbin(p * z[i], 1)
+    }
+    z[i] ~ dbern(psi[i])
+}
+
+#estimated number of occupied colonies
+N <- sum(z)
+  }
