@@ -11,6 +11,11 @@ knitr::opts_chunk$set(
 )
 ```
 
-This repo is for **something**
+This repo is to summarize the work by L Petracca of the University of Washington's Quantitative Conservation Lab through December 2022 on the TUPU project, with project partners B. Gardner, P. Hodum, R. Kaler, S. Pearson, H. Renner, & S.J. Converse.
 
-This is a good place to include things like - what JAGS/NIMBLE/R version and OS did you run this code on. With what settings. How long did it take. How much juice did it take. 
+A link to slides with the Quantitative Seminar from this work (November 18 2022) is here:
+https://docs.google.com/presentation/d/1YOXPm35RmFz70hHA_M_bUecxlw1R8wyXG9T0lOo8uPs/edit?usp=sharing
+
+The git repo should be fairly straightforward, with all colony datasets and colony visualization figures in "data", scripts for data processing and circular plot burrow sampling in "scripts", and some summary figures in "results". A note that older scripts and figures are in scripts/legacy_scripts and data/a_figures/legacy_figures, respectively. 
+
+
