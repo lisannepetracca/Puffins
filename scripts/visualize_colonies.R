@@ -1,3 +1,12 @@
+#---
+#"Visualizing TUPU Colony Data"
+#"Lisanne Petracca"
+#"Nov 2022"
+#---
+
+#This is script summarizing the available datasets for where TUPU colonies occur in space (and for what temporal window)
+#A note that many of these colonies no longer have TUPU and are historical
+
 library(here)
 library(ggplot2)
 library(sf)
@@ -92,23 +101,8 @@ data_WA4 <- data_WA4 %>% filter(!is.na(long)) %>% filter(!is.na(lat))
 data_WA5 <- data_WA5 %>% filter(!is.na(long)) %>% filter(!is.na(lat))
 
 #let's make versions where there are TUPU records
-head(data_AK) #all are TUPU
-unique(data_AK$location_name)
-unique(data_AK$location_index)
-head(data_WA1)
-unique(data_WA1$SITE_NAME)
-unique(data_WA1$SITE_NUMBE)
-head(data_WA2)
-unique(data_WA2$Species)
-head(data_WA4) #no coordinates in TUPU Zone 2 dataset for "all years"; coords wo 2013 only
-unique(data_WA4$Species)
-head(data_WA5)
-unique(data_WA5$Island)
-head(data_OR1)
-head(data_OR2)
-head(NPSDP)
 
-head(data_CA1)
+head(data_WA4) #no coordinates in TUPU Zone 2 dataset for "all years"; coords wo 2013 only
 
 data_WA1_TUPU <- data_WA1 %>% filter(SPECIES_CO=="TUPU") %>%  mutate(!!newColumnName := "TUPU WA Colony Register")
 data_WA2_TUPU <- data_WA2 %>% filter(Species=="TUPU") %>%  mutate(!!newColumnName := "TUPU Pelagic At-Sea")
@@ -138,7 +132,7 @@ head(data)
 data$lat <- as.numeric(data$lat)
 data <- data %>% filter(!is.na(data$lat))
 
-####---- LET'S DO A MAP WITH ALL ----####
+####---- LET'S DO A MAP WITH ALL DATA SOURCES ----####
 
 #let's transfer to an sf object and assign a coordinate system
 TUPU <- st_as_sf(data, coords = 
@@ -190,6 +184,8 @@ ggmap(myMap) +
 ggsave("data/a_figures/AK_and_BC_and_WA_and_OR_and_CA.jpg")
 
 ####---- LETS DO A MAP WITH NPSDP ONLY ####
+
+#NPSDP corresponds to the North Pacific Seabird Data Portal
 
 #let's merge these datasets together
 df_list2 <- list(NPSDP, NPSDP_TUPU)      
@@ -512,199 +508,3 @@ ggplot() +
   coord_sf(crs=3338, xlim=c(extent[[1]], extent[[3]]), ylim=c(extent[[2]], extent[[4]]))+
   ggtitle("1600 km2 Grid Over Puffin Colonies in N America")
 ggsave("data/a_figures/ColoniesOnly_w1600km2Grid.jpg")
-
-library(gstat)
-library(rasterize)
-library(raster)
-
-r <- raster(ncol=200, nrow=100, )
-extent(r) <- extent(TUPU_proj)
-rp <- rasterize(TUPU_proj, r, 1)
-plot(rp)
-
-#rs is a raster with 1s for where there are colonies
-
-#http://santiago.begueria.es/2010/10/generating-spatially-correlated-random-fields-with-r/
-test <- as.data.frame(rp, row.names=NULL, optional=FALSE,
-              xy=TRUE, na.rm=T)
-head(test)
-
-# define the gstat object (spatial model)
-g.dummy <- gstat(formula=z~1+y, locations=~x+y, dummy=T, beta=25, model=vgm(psill=10,model="Exp",range=15), nmax=20)
-yy <- predict(g.dummy, newdata=test, nsim=4)
-
-# show one realization
-gridded(yy) = ~x+y
-spplot(yy[1])
-
-#would then use poly2nb and run dcar_normal in nimble?
-#can i generate data from a dcar_normal process?
-
-#trying something else https://stackoverflow.com/questions/19580922/simulating-geographic-data-from-longitude-latitude-in-r
-
-# first lets ensure a non-zero distance between colonies
-data_colony <- data_colony[!duplicated(data_colony[c(1,2)]),]
-#now there are 926 vs 960 colonies
-
-N <- nrow(data_colony)
-p <- 1/N
-
-N <- 3000
-p <- 1/N
-
-x.coord <- runif(N,0,100)
-y.coord <- runif(N,0,100)
-points <- cbind(x.coord,y.coord)
-
-
-
-#coords <- as.data.frame(st_coordinates(TUPU_proj))
-#distance matrix between points
-Dd <- as.matrix(dist(points))
-plot(Dd)
-
-# weights matrix
-w <- exp(-p * Dd)
-plot(w)
-Ww <- chol(w)
-
-min(w)
-max(w)
-
-# errors
-z <- t(Ww) %*% rnorm(N,0,1) 
-
-# plot
-df <- data.frame(x = x.coord, y = y.coord, z = z)
-require(ggplot2)
-ggplot(df, aes(x = x, y = y, col = z)) +
-  geom_point() +
-  scale_colour_gradient(low="red", high="white")
-
-#simulating data from nimble
-#https://r-nimble.org/nimbleExamples/simulation_from_model.html
-
-#don't like it. moving on
-#https://rspatial.org/raster/rosu/Chapter4.html
-
-library(raster)
-r <- raster(xmn=1, xmx=200, ymn=1, ymx=100, ncol=100, nrow=200)
-X <- init(r, 'x')
-Y <- init(r, 'y')
-
-#We can use algebraic exprssions with RasterLayer objects
-
-Z <- X - 2*Y
-
-Z <- (Z-cellStats(Z,mean))/cellStats(Z,sd)
-plot(Z) #ok i like this
-
-#another attempt that is prob more correct
-#https://hpaulkeeler.com/poisson-point-process-simulation/
-#Simulation window parameters
-xMin=0;xMax=1;
-yMin=0;yMax=1;
-xDelta=xMax-xMin;yDelta=yMax-yMin; #rectangle dimensions
-areaTotal=xDelta*yDelta;
-
-#Point process parameters
-lambda=100; #intensity (ie mean density) of the Poisson process
-
-#Simulate Poisson point process
-numbPoints=rpois(1,areaTotal*lambda);#Poisson number of points
-xx=xDelta*runif(numbPoints)+xMin;#x coordinates of Poisson points
-yy=yDelta*runif(numbPoints)+yMin;#y coordinates of Poisson points
-
-#Plotting
-plot(xx,yy,'p',xlab='x',ylab='y',col='blue')
-
-####---- CHOSEN METHOD FOR MAKING AUTOCORRELATED DATA ----####
-
-library(raster)
-library(gstat)
-
-#https://search.r-project.org/CRAN/refmans/raster/html/rasterFromXYZ.html
-
-#ok so first we create  basic x-y raster by row and column
-#then assign those values to raster in our coord system
-r <- raster(nrow=200, ncol=100, xmn=0, xmx=200, ymn=0, ymx=100, crs="")
-raster::values(r) <- runif(20000,0,1)
-#don't like it, let's go back to yesterday
-#here test is an empty raster
-test <- as.data.frame(r, row.names=NULL, optional=FALSE,
-                      xy=TRUE, na.rm=T)
-head(test)
-
-#define the gstat object (spatial model)
-#ok so range definitely controls the autocorrelation; lower (1) means less autocorrelated compared to higher (10)
-
-#beta seems to control mean of values, when psill is 10
-
-#when psill is low (0.02), there seems to be more of the low values, more difficult to get yellows
-#when high (50), lots of yellow
-
-#formula specifies dependent variable as linear model of independent variables; z~1 for ordinary and simple kriging
-#beta (vector with trend coefficients) also needs to be defined for simple kriging
-#nmax is number of nearest observations that should be used for a kriging prediction or simulation
-#dummy means to only consider for unconditional simulation
-#model specifies the variogram
-set.seed(67)
-g.dummy <- gstat(formula=z~1, locations=~x+y, dummy=T, beta=1, model=vgm(psill=10,model="Exp",range=300), nmax=20)
-yy <- predict(g.dummy, newdata=test, nsim=1) #was nsim=4
-
-# show one realization
-gridded(yy) = ~x+y
-spplot(yy[1]) 
-
-head(yy)
-
-#?vgm() was really helpful in generating sample variograms
-
-#assigning those values to raster?
-# xmin       ymin       xmax       ymax 
-# -2168649.7  -308459.1  2471350.3  2171540.9 
-grid_raster <- raster::raster(nrow=200, ncol=100, xmn=-2168649.7, xmx=2471350.3, ymn=-308459.1, ymx=2171540.9, crs=CRS("+init=epsg:3338"))
-
-raster::values(grid_raster) <- yy$sim1
-plot(grid_raster)
-
-#ok so grid_raster has the autocorrelated covariate values
-
-#scale it
-
-grid_scale <- (grid_raster-cellStats(grid_raster, "mean"))/cellStats(grid_raster, "sd")
-plot(grid_scale)
-
-grid_plot <- as.data.frame(grid_scale, xy=TRUE)
-names(grid_plot) <- c("x", "y", "habitat_suitability")
-
-#ok let's get centroids and extract cov information
-centroids <- st_centroid(TUPU_grid_1600km2)
-
-#now we can plot as we did for the vector data, but take note of "geom_raster" argument
-#also, note that we are taking the third column of "elev_df" as our color fill
-#as this is the column that has our raster values
-ggplot() +
-  geom_raster(data = grid_plot , aes(x = x, y = y, fill = habitat_suitability)) +
-  scale_fill_viridis_c() +
-  geom_sf(data = centroids, fill=NA, color="black", size = .1) +
-  coord_sf()
-ggsave("data/a_figures/1600km2_grid_w_spatial_cov.jpg")
-
-ggplot() +
-  geom_raster(data = grid_plot , aes(x = x, y = y, fill = habitat_suitability)) +
-  scale_fill_viridis_c() +
-  geom_sf(data = TUPU_proj, fill=NA, color="black", size = .1) +
-  coord_sf()
-ggsave("data/a_figures/colonies_w_spatial_cov.jpg")
-
-#seeing something ab psi
-TUPU_grid_1600km2_sf <- st_as_sf(TUPU_grid_1600km2)
-TUPU_grid_1600km2_sf$psi <- simModel$psi
-ggplot() +
-  geom_raster(data = grid_plot , aes(x = x, y = y, fill = habitat_suitability)) +
-  scale_fill_viridis_c() +
-  geom_sf(data = centroids, color="black", size = .1) +
-  coord_sf()
-ggsave("data/a_figures/grid_w_spatial_cov.jpg")
-
