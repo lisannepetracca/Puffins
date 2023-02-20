@@ -1,3 +1,12 @@
+#---
+#"Simulating Point Process for Island Resembling Aiktak"
+#"Lisanne Petracca"
+#"Nov 2022"
+#---
+
+#This is script summarizing the creation of a clustered point process on an island of similar size to Aiktak
+#We adjust the number of burrows sampled (50, 100, 250, 500, 1000) and estimate bias and RMSE
+
 library(sf)
 library(ggplot2)
 library(tidyverse)
@@ -11,6 +20,7 @@ island <- st_buffer(pt.sf, dist = 700)
 plot(island, col="white")
 
 #create buffer of "suitable" habitat that is 30 m from perimeter
+#this reflects fact that TUPU habitat is often along cliff edge
 suitable_buffer <- st_buffer(island, dist = -30)
 
 ggplot() +
@@ -40,7 +50,7 @@ ggplot() +
   #geom_sf(data=th, color = "darkgreen", size=1)+
   geom_sf(data=sf_points, color="purple")
 
-#let's build 2.5-m plots across island
+#let's build 2.5-m radius plots across island
 plots <- st_buffer(sf_points, dist = 2.5)
 #let's only include those completely within polygon
 plots <- st_join(plots, suitable_habitat, join = st_within, left=FALSE)
@@ -49,6 +59,8 @@ plots <- st_join(plots, suitable_habitat, join = st_within, left=FALSE)
 ggplot() +
   geom_sf(data = suitable_habitat, color = "black", fill = "white", size=1) +
   geom_sf(data=plots, color="purple")
+
+#here's some stuff on generating clustered poisson process
 
 #https://keen-swartz-3146c4.netlify.app/pointpatterns.html#spatial-sampling-and-simulating-a-point-process
 #kappa represents the intensity of the poisson process of cluster centers
@@ -64,6 +76,7 @@ th <- list()
 library(sf)
 library(spatstat)
 
+#these are parameters chosen to represent actual burrow densities from our aleutians field trip
 set.seed(23)
 kappa <- 0.0785
 mu <- 3.51
@@ -73,8 +86,18 @@ for(i in 1:nsim){
   th[[i]] = st_sample(suitable_habitat, kappa = kappa, mu = mu, scale = 1, type = "Thomas") #3.6 scale
 }
 
+
+#?rThomas
+#The help function obtained by ?rThomas details the meaning of the parameters kappa, mu and scale. 
+#Simulating point processes means that the intensity is given, not the sample size. 
+#The sample size within the observation window obtained this way is a random variable.
+
+#?rThomas
+#spdep package??
+
 burrow_count <- list()
 
+#this is the number of burrows intersecting the circular plots
 for(i in 1:nsim){
   burrow_count[[i]] <- lengths(st_intersects(plots, th[[i]]))
 }
@@ -90,8 +113,8 @@ sd_tot <- sd_sim <- list()
 mean_sim <- unlist(lapply(burrow_count, mean))
 sd_sim <- unlist(lapply(burrow_count, sd))
 
-#here is where we have to assign occupancy to each burrow (0.75)
-#in circle plots, 71 1's of 126 burrows #0.56
+#here is where we have to assign occupancy to each burrow 
+#in circle plots, 71 of 126 burrows occupied #0.56
 occu <- function(pp) {
   pp$occu <- rbinom(nrow(pp),1,0.56)
   return(pp)
@@ -101,14 +124,6 @@ occu <- function(pp) {
 length(th)
 th <- lapply(th,occu)
 
-#?rThomas
-#The help function obtained by ?rThomas details the meaning of the parameters kappa, mu and scale. 
-#Simulating point processes means that the intensity is given, not the sample size. 
-#The sample size within the observation window obtained this way is a random variable.
-
-#?rThomas
-#spdep package??
-
 ggplot() +
   geom_sf(data = suitable_habitat, color = "black", fill = "white", size=1) +
   geom_sf(data=th, color = "darkgreen", size=1)
@@ -117,7 +132,7 @@ ggplot() +
   geom_sf(data=th2, color = "darkgreen", size=1)
 
 #ok but now we have to exclude habitat that cannot be visited
-?st_buffer
+#we are pretending that outer 15 m is a cliff face (which in the future may have a higher burrow density)
 nogo_buffer <- st_buffer(island, dist = -15)
 nogo_habitat <- st_difference(island, nogo_buffer)
 survey_habitat <- st_difference(suitable_habitat, nogo_habitat)
@@ -157,11 +172,7 @@ plot_grid(
 
 ####---- HERE IS WORK WITH PROPORTION OF CIRCLES AND BURROW DENSITY ----####
 
-#what proportion of circles are sampled?
-#prop <- c(0.1, 0.25, 0.5, 0.75, 0.9, 1)
-#one strategy
-#nSamples <- round(nrow(plots)*prop) 
-#second strategy
+#number of burrows sampled
 nSamples <- c(50, 100, 250, 500, 1000) 
 
 abundance <- sd <- bias <- rmse <- matrix(NA, nrow=5,ncol=nsim)
@@ -259,272 +270,3 @@ plot_grid(
   align="hv"
 )
 ggsave("G:/My Drive/Puffins/Figures/BurrowDensity_CirclePlots_SinglePP_Aiktak_Bias_RMSE.jpg")
-
-####---- PLOTS FOR OCCUPANCY ----####
-
-occu_summ1 <- means_fct(occu_mean)
-max(occu_summ1$mean)
-
-#sd <- as.data.frame(sd)
-occu_summ1$prop <- factor(occu_summ1$prop, levels = c("10", "25", "50", "75", "90", "100"))
-
-occu1 <- ggplot(occu_summ1, aes(x=prop, y=mean)) +
-  geom_boxplot()+
-  geom_hline(yintercept=0.56, linetype="dashed",
-             color = "red", size=1)+
-  scale_x_discrete(breaks=c("10","25","50","75","90","100"),
-                   labels=c("10%", "25%", "50%", "75%", "90%", "100%"))+
-  xlab("Proportion of plots surveyed")+ ylab("Estimated occupancy") + ylim(0.4,0.7)
-occu1
-
-####---- MOVING ON TO SMALLER AREA SURVEYABLE ----####
-
-nSamples <- round(nrow(plots_survey)*prop)
-
-my.samples <- list()
-mean <- occu_mean <- sd <- matrix(NA, nrow=6,ncol=nsim)
-temp <- temp2 <- temp3 <- list()
-occu_vec <- vector()
-
-#we are repeating sims 100x to get at variability of sampling
-
-for(i in 1:length(nSamples)){ #six types of sampling
-  for(j in 1:nsim){ #number of repeats on point process
-    temp <- sample(c(1:nrow(plots_survey)),nSamples[i])#these are selected plots
-    #this is number of burrows for plots intersecting point process
-    temp2 <- lengths(st_intersects(plots_survey[temp,], th[[j]]))
-    #this provides id's of burrows within those intersecting plots
-    temp3 <- st_intersects(plots_survey[temp,], th[[j]])
-    #this is the number of circular plots
-    for(m in 1:length(temp2)){
-      if (temp2[m]==0) {
-        occu_vec[m] <- NA 
-      }
-      else {
-        x <- sample(c(1:temp2[m]),1)
-        occu_vec[m] <- th[[j]][temp3[[m]][x],]$occu
-      }
-    }
-    mean[i,j] <- mean(temp2)
-    occu_mean[i,j] <- mean(occu_vec, na.rm=T)
-  }}
-
-dim(mean)
-mean_dup <- mean
-mean_real <- as.data.frame(matrix(mean_sim, nrow=6, ncol=nsim, byrow=T))
-mean_diff <- mean_dup - mean_real
-mean_summ2 <- means_fct(mean_diff)
-#sd <- as.data.frame(sd)
-mean_summ2$prop <- factor(mean_summ2$prop, levels = c("10", "25", "50", "75", "90", "100"))
-#sd$prop <- c("10", "25", "50", "75", "90", "100")
-
-library(ggplot2)
-
-test2 <- ggplot(mean_summ2, aes(x=prop, y=mean)) +
-  geom_boxplot()+
-  geom_hline(yintercept=0, linetype="dashed",
-             color = "red", size=1)+
-  scale_x_discrete(breaks=c("10","25","50","75","90","100"),
-                   labels=c("10%", "25%", "50%", "75%", "90%", "100%"))+
-  xlab("Proportion of plots surveyed")+ ylab("Deviation of mean burrow density from known mean") + ylim(-1,1)
-test2
-
-####---- PLOTS FOR OCCUPANCY ----####
-
-occu_summ2 <- means_fct(occu_mean)
-max(occu_summ2$mean)
-
-#sd <- as.data.frame(sd)
-occu_summ2$prop <- factor(occu_summ2$prop, levels = c("10", "25", "50", "75", "90", "100"))
-
-occu2 <- ggplot(occu_summ2, aes(x=prop, y=mean)) +
-  geom_boxplot()+
-  geom_hline(yintercept=0.56, linetype="dashed",
-             color = "red", size=1)+
-  scale_x_discrete(breaks=c("10","25","50","75","90","100"),
-                   labels=c("10%", "25%", "50%", "75%", "90%", "100%"))+
-  xlab("Proportion of plots surveyed")+ ylab("Estimated occupancy") + ylim(0.4,0.7)
-occu2
-
-
-####---- ok let's try to code sampling two burrows as opposed to 1 ----####
-
-#what proportion of circles are sampled?
-prop <- c(0.1, 0.25, 0.5, 0.75, 0.9, 1)
-nSamples <- round(nrow(plots)*prop) 
-
-my.samples <- list()
-mean <- occu_mean <- sd <- matrix(NA, nrow=6,ncol=nsim)
-temp <- temp2 <- temp3 <- list()
-occu_vec <- vector()
-
-#we are repeating sims 100x to get at variability of sampling
-
-for(i in 1:length(nSamples)){ #six types of sampling
-  for(j in 1:nsim){ #number of repeats on point process
-    temp <- sample(c(1:nrow(plots)),nSamples[i])#these are selected plots
-    #this is number of burrows for plots intersecting point process
-    temp2 <- lengths(st_intersects(plots[temp,], th[[j]]))
-    #this provides id's of burrows within those intersecting plots
-    temp3 <- st_intersects(plots[temp,], th[[j]])
-    occu_vec <- vector()
-    #this is the number of circular plots
-    for(m in 1:length(temp2)){
-      if (temp2[m]==0) {
-        occu_vec <- c(occu_vec, NA) 
-      }
-      else if (temp2[m]==1){
-        x <- sample(c(1:temp2[m]),1)
-        occu_vec <- c(occu_vec, th[[j]][temp3[[m]][x],]$occu)
-      } else {
-        x <- sample(c(1:temp2[m]),2)
-        occu_vec <- c(occu_vec, th[[j]][temp3[[m]][x[1]],]$occu, th[[j]][temp3[[m]][x[2]],]$occu)
-      }
-    }
-    mean[i,j] <- mean(temp2)
-    occu_mean[i,j] <- mean(occu_vec, na.rm=T)
-  }}
-
-occu_summ3 <- means_fct(occu_mean)
-max(occu_summ3$mean)
-
-#sd <- as.data.frame(sd)
-occu_summ3$prop <- factor(occu_summ3$prop, levels = c("10", "25", "50", "75", "90", "100"))
-
-occu3 <- ggplot(occu_summ3, aes(x=prop, y=mean)) +
-  geom_boxplot()+
-  geom_hline(yintercept=0.56, linetype="dashed",
-             color = "red", size=1)+
-  scale_x_discrete(breaks=c("10","25","50","75","90","100"),
-                   labels=c("10%", "25%", "50%", "75%", "90%", "100%"))+
-  xlab("Proportion of plots surveyed")+ ylab("Estimated occupancy") + ylim(0.4,0.7)
-occu3
-
-#what proportion of circles are sampled?
-prop <- c(0.1, 0.25, 0.5, 0.75, 0.9, 1)
-nSamples <- round(nrow(plots_survey)*prop) 
-
-my.samples <- list()
-mean <- occu_mean <- sd <- matrix(NA, nrow=6,ncol=nsim)
-temp <- temp2 <- temp3 <- list()
-occu_vec <- vector()
-
-#we are repeating sims 100x to get at variability of sampling
-
-for(i in 1:length(nSamples)){ #six types of sampling
-  for(j in 1:nsim){ #number of repeats on point process
-    temp <- sample(c(1:nrow(plots_survey)),nSamples[i])#these are selected plots
-    #this is number of burrows for plots intersecting point process
-    temp2 <- lengths(st_intersects(plots_survey[temp,], th[[j]]))
-    #this provides id's of burrows within those intersecting plots
-    temp3 <- st_intersects(plots_survey[temp,], th[[j]])
-    #this is the number of circular plots
-    occu_vec <- vector()
-    for(m in 1:length(temp2)){
-      if (temp2[m]==0) {
-        occu_vec <- c(occu_vec, NA) 
-      }
-      else if (temp2[m]==1){
-        x <- sample(c(1:temp2[m]),1)
-        occu_vec <- c(occu_vec, th[[j]][temp3[[m]][x],]$occu)
-      } else {
-        x <- sample(c(1:temp2[m]),2)
-        occu_vec <- c(occu_vec, th[[j]][temp3[[m]][x[1]],]$occu, th[[j]][temp3[[m]][x[2]],]$occu)
-      }
-    }
-    mean[i,j] <- mean(temp2)
-    occu_mean[i,j] <- mean(occu_vec, na.rm=T)
-  }}
-
-occu_summ4 <- means_fct(occu_mean)
-max(occu_summ4$mean)
-
-#sd <- as.data.frame(sd)
-occu_summ4$prop <- factor(occu_summ4$prop, levels = c("10", "25", "50", "75", "90", "100"))
-
-occu4 <- ggplot(occu_summ4, aes(x=prop, y=mean)) +
-  geom_boxplot()+
-  geom_hline(yintercept=0.56, linetype="dashed",
-             color = "red", size=1)+
-  scale_x_discrete(breaks=c("10","25","50","75","90","100"),
-                   labels=c("10%", "25%", "50%", "75%", "90%", "100%"))+
-  xlab("Proportion of plots surveyed")+ ylab("Estimated occupancy") + ylim(0.4,0.7)
-occu4
-
-
-
-
-library(cowplot)
-plot_grid(
-  test1, test2,
-  labels=c('A', 'B'),
-  # labels = c('all surveyable', 
-  #            '15-m not surveyable'),
-  align="hv"
-)
-ggsave("G:/My Drive/Puffins/Figures/BurrowDensity_CirclePlots_SinglePP_Aiktak.jpg")
-
-plot_grid(
-  occu1, occu2,
-  labels=c('A', 'B'),
-  # labels = c('all surveyable', 
-  #            '15-m not surveyable'),
-  align="hv"
-)
-ggsave("G:/My Drive/Puffins/Figures/Occu_SingleBurrow_CirclePlots_SinglePP_Aiktak.jpg")
-
-dev.off()
-plot_grid(
-  occu1, occu2, occu3, occu4,
-  labels=c('A', 'B', 'C', 'D'))
-# labels = c('all surveyable, single burrow', 
-#            '15-m not surveyable, single burrow',
-#              'all surveyable, two burrows', 
-#            '15-m not surveyable, two burrows'),
-ggsave("G:/My Drive/Puffins/Figures/Occu_OneAndTwoBurrow_CirclePlots_SinglePP_Aiktak.jpg")
-
-#need to assign occupancy to all of these burrows -- should use real data, but let's use 0.75 for now
-
-
-#notes at end of day friday
-#need to repeat this like 100x to get at variation in plots surveyed; mean and SE rather than SD
-
-#ok so i did the repeat 100x and have boxplots getting at mean for more homogeneous and more clustered
-#how to keep number of burrows EXACTLY the same while changing clusteredness
-
-
-
-#GRID SEARCH FOR KAPPA AND MU
-
-# library(sf)
-# library(spatstat)
-# #here is code for testing via grid search of kappa and mu; the latter would be provided as vectors
-# kappa <- 0.0785
-# mu <- 3.51
-# c <- expand.grid(kappa, mu)
-# test <- rep(list(list()), nrow(c))
-# #nsim <- 20
-#   for(i in 1:nrow(c)){
-#     for(j in 1:15){
-#     temp = st_sample(suitable_habitat, kappa = c$Var1[i], mu = c$Var2[i], scale = 1, type = "Thomas") #3.6 scale
-#     test[[i]][[j]] <- temp
-#     }}
-# 
-# burrow_count <- rep(list(list()), nrow(c))
-# 
-# for(i in 1:nrow(c)){
-#   for(j in 1:15){
-#   burrow_count[[i]][[j]] <- lengths(st_intersects(plots, test[[i]][[j]]))
-#   }}
-#  
-# #getting mean and sd of burrow count over those sims
-# test <- list() 
-# for(i in 1:nrow(c)){
-# test[[i]] <- unlist(lapply(burrow_count[[i]], mean))
-# }
-# (test <- unlist(lapply(test, mean)))
-# test <- list() 
-# for(i in 1:nrow(c)){
-#   test[[i]] <- unlist(lapply(burrow_count[[i]], sd))
-# }
-# (test <- unlist(lapply(test, mean)))
